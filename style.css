@@ -1,0 +1,118 @@
+body {
+  margin: 0;
+  font-family: Poppins, Arial, sans-serif;
+  background: #f4f6f8;
+  color: #222;
+}
+
+.header {
+  background: linear-gradient(135deg, #0a1f44, #123b7a);
+  color: white;
+  padding: 15px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 60px;
+}
+
+.title h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.info-bar {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+  gap: 10px;
+}
+
+.info-box {
+  background: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  flex: 1;
+  min-width: 140px;
+}
+
+.section {
+  padding: 15px;
+}
+
+.section h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.alt-bg {
+  background: #e9f0f9;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 15px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.btn {
+  display: inline-block;
+  padding: 8px 15px;
+  margin-top: 10px;
+  background: #0a1f44;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #123b7a;
+}
+
+.game-btn {
+  padding: 15px;
+  border: none;
+  background: #123b7a;
+  color: white;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.news {
+  list-style: none;
+  padding: 0;
+}
+
+.news li {
+  background: white;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+.footer {
+  text-align: center;
+  background: #0a1f44;
+  color: white;
+  padding: 15px;
+  font-size: 14px;
+}
