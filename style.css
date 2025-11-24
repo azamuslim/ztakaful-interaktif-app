@@ -315,3 +315,20 @@ form button {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+.btn-kuiz {
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #0a1f44, #0f3a7a);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+  width: 100%;
+}
+
+.btn-kuiz:hover {
+  background: #0f3a7a;
+  transform: scale(1.05);
+}
+
