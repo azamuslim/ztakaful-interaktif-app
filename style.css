@@ -160,4 +160,47 @@ form button {
   background: #999;
   margin-top: 8px;
 }
+.quiz-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
 
+.tabs button {
+  margin: 5px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #003b8b;
+  color: white;
+  cursor: pointer;
+}
+
+#answers button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #003b8b;
+  background: white;
+  color: #003b8b;
+  cursor: pointer;
+}
+
+#answers button:hover {
+  background: #003b8b;
+  color: white;
+}
+
+#guessInput {
+  width: 80%;
+  padding: 8px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
