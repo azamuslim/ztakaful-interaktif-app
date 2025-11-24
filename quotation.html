@@ -1,55 +1,232 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quotation - Ztakaful Interaktif</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request Quotation | ZTakaful Interaktif</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+}
+
+header {
+  background: linear-gradient(135deg, #0a1f44, #0f3a7a);
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+header h2 {
+  margin: 5px 0 0;
+  font-size: 20px;
+}
+
+.container {
+  padding: 15px;
+  max-width: 600px;
+  margin: auto;
+}
+
+.form-card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 12px rgba(0,0,0,0.1);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  color: #0a1f44;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+textarea {
+  resize: none;
+  height: 80px;
+}
+
+.product-type {
+  background: #0a1f44;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #0a1f44, #0f3a7a);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  opacity: 0.9;
+}
+
+footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: #555;
+}
+</style>
 </head>
+
 <body>
 
-<header class="header">
-  <div class="logo-area">
-    <h2>Ztakaful Interaktif App</h2>
-  </div>
+<header>
+  <h2>Ztakaful Interaktif App</h2>
+  <p>Request Quotation</p>
 </header>
 
-<section class="form-section">
-  <h3>📋 Borang Permohonan Quotation</h3>
+<div class="container">
+  <div class="form-card">
 
-  <form id="quotationForm">
+    <div class="product-type" id="productTypeDisplay">
+      Jenis Takaful: -
+    </div>
 
-    <label>Nama Penuh</label>
-    <input type="text" id="name" placeholder="Contoh: Ahmad Zaki">
+    <div class="form-group">
+      <label>Nama Penuh</label>
+      <input type="text" id="nama" placeholder="Nama penuh anda">
+    </div>
 
-    <label>No IC</label>
-    <input type="text" id="ic" placeholder="Contoh: 900101-01-1234">
+    <div class="form-group">
+      <label>No IC</label>
+      <input type="text" id="ic" placeholder="Contoh: 900101-01-1234">
+    </div>
 
-    <label>No Telefon</label>
-    <input type="tel" id="phone" placeholder="Contoh: 0123456789">
+    <div class="form-group">
+      <label>No Telefon</label>
+      <input type="text" id="phone" placeholder="Contoh: 0123456789">
+    </div>
 
-    <label>Email</label>
-    <input type="email" id="email" placeholder="Contoh: user@email.com">
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="example@email.com">
+    </div>
 
-    <label>No Plat Kenderaan</label>
-    <input type="text" id="plate" placeholder="Contoh: ABC1234">
+    <div class="form-group" id="vehicleSection">
+      <label>No Plat Kenderaan</label>
+      <input type="text" id="plate" placeholder="Contoh: ABC1234">
+    </div>
 
-    <label>Poskod</label>
-    <input type="text" id="postcode" placeholder="Contoh: 06000">
+    <div class="form-group">
+      <label>Poskod</label>
+      <input type="text" id="postcode" placeholder="Contoh: 13000">
+    </div>
 
-    <label>Nota Tambahan</label>
-    <textarea id="note" rows="3" placeholder="Nyatakan keperluan tambahan..."></textarea>
+    <div class="form-group">
+      <label>Nota Tambahan</label>
+      <textarea id="note" placeholder="Sebarang maklumat tambahan..."></textarea>
+    </div>
 
-    <button type="button" onclick="sendWhatsApp()">Request Quotation</button>
-    <button type="reset" onclick="clearData()" class="btn-clear">Reset</button>
+    <button class="submit-btn" onclick="sendWhatsApp()">Hantar Quotation</button>
 
-  </form>
-</section>
+  </div>
 
-<footer>
-  <p>Dibangunkan oleh AzA | Z-Takaful Interaktif</p>
-</footer>
+  <footer>
+    Dibangunkan oleh <b>AzA Z-Takaful Interaktif</b> • BroChat ReactJS
+  </footer>
+</div>
 
-<script src="quotation.js"></script>
+<script>
+// ==== Detect jenis takaful dari URL ====
+const params = new URLSearchParams(window.location.search);
+const type = params.get("type");
+
+const typeMap = {
+  vehicle: "Takaful Kenderaan",
+  fire: "Takaful Kebakaran",
+  travel: "Takaful Travel",
+  pa: "Takaful Personal Accident",
+  medical: "Z-Med Protect"
+};
+
+const display = document.getElementById("productTypeDisplay");
+display.innerText = "Jenis Takaful: " + (typeMap[type] || "Umum");
+
+// ==== Control paparan section kenderaan ====
+const vehicleSection = document.getElementById("vehicleSection");
+
+if(type === "vehicle"){
+  vehicleSection.style.display = "block";
+}else{
+  vehicleSection.style.display = "none";
+}
+
+// ==== Auto Save to LocalStorage ====
+const inputs = document.querySelectorAll("input, textarea");
+
+inputs.forEach(input => {
+  const saved = localStorage.getItem(input.id);
+  if(saved){
+    input.value = saved;
+  }
+
+  input.addEventListener("input", () => {
+    localStorage.setItem(input.id, input.value);
+  });
+});
+
+// ==== Hantar ke WhatsApp ====
+function sendWhatsApp(){
+  const nama = document.getElementById("nama").value;
+  const ic = document.getElementById("ic").value;
+  const phone = document.getElementById("phone").value;
+  const email = document.getElementById("email").value;
+  const plate = document.getElementById("plate").value;
+  const postcode = document.getElementById("postcode").value;
+  const note = document.getElementById("note").value;
+
+  let msg = `Assalamualaikum,%0A%0A` +
+            `Saya berminat untuk quotation *${typeMap[type]}*%0A%0A` +
+            `Nama: ${nama}%0A` +
+            `No IC: ${ic}%0A` +
+            `Telefon: ${phone}%0A` +
+            `Email: ${email}%0A`;
+
+  if(type === "vehicle"){
+    msg += `No Plat: ${plate}%0A`;
+  }
+
+  msg += `Poskod: ${postcode}%0A` +
+         `Nota: ${note}`;
+
+  // Tukar kepada nombor WhatsApp bro
+  const whatsappNumber = "60192506999"; 
+
+  window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
+}
+</script>
+
 </body>
 </html>
