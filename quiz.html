@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <title>Ztakaful Kuiz & Edukasi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-area">
+    <h2>🎯 Kuiz & Teka Bahagian</h2>
+  </div>
+</header>
+
+<section class="quiz-container">
+
+  <div class="tabs">
+    <button onclick="showTab('quiz')">Kuiz</button>
+    <button onclick="showTab('teka')">Teka Bahagian</button>
+    <button onclick="showTab('score')">Scoreboard</button>
+  </div>
+
+  <!-- ✅ TAB 1: QUIZ -->
+  <div id="quiz" class="tab-content">
+    <h3>🚘 Kuiz Kereta & Motosikal</h3>
+
+    <div id="questionBox">
+      <p id="question">Soalan akan muncul di sini...</p>
+      <div id="answers"></div>
+    </div>
+
+    <p>Skor: <span id="score">0</span></p>
+  </div>
+
+  <!-- ✅ TAB 2: TEKA PART -->
+  <div id="teka" class="tab-content" style="display:none;">
+    <h3>🔧 Teka Bahagian Kenderaan</h3>
+
+    <img id="partImage" src="engine.png" alt="Bahagian kenderaan" style="width:200px;">
+
+    <p>Bahagian ini ialah:</p>
+    <input type="text" id="guessInput" placeholder="Tulis jawapan...">
+    <button onclick="checkGuess()">Semak</button>
+
+    <p id="guessResult"></p>
+  </div>
+
+  <!-- ✅ TAB 3: SCORE -->
+  <div id="score" class="tab-content" style="display:none;">
+    <h3>🏆 Scoreboard</h3>
+    <p>Skor Terkumpul: <span id="totalScore">0</span></p>
+    <button onclick="resetScore()">Reset Score</button>
+  </div>
+
+</section>
+
+<footer>
+  <p>Z-Takaful Interaktif | Edu-Game Kenderaan</p>
+</footer>
+
+<script src="quiz.js"></script>
+</body>
+</html>
