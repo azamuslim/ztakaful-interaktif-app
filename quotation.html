@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quotation - Ztakaful Interaktif</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-area">
+    <h2>Ztakaful Interaktif App</h2>
+  </div>
+</header>
+
+<section class="form-section">
+  <h3>📋 Borang Permohonan Quotation</h3>
+
+  <form id="quotationForm">
+
+    <label>Nama Penuh</label>
+    <input type="text" id="name" placeholder="Contoh: Ahmad Zaki">
+
+    <label>No IC</label>
+    <input type="text" id="ic" placeholder="Contoh: 900101-01-1234">
+
+    <label>No Telefon</label>
+    <input type="tel" id="phone" placeholder="Contoh: 0123456789">
+
+    <label>Email</label>
+    <input type="email" id="email" placeholder="Contoh: user@email.com">
+
+    <label>No Plat Kenderaan</label>
+    <input type="text" id="plate" placeholder="Contoh: ABC1234">
+
+    <label>Poskod</label>
+    <input type="text" id="postcode" placeholder="Contoh: 06000">
+
+    <label>Nota Tambahan</label>
+    <textarea id="note" rows="3" placeholder="Nyatakan keperluan tambahan..."></textarea>
+
+    <button type="button" onclick="sendWhatsApp()">Request Quotation</button>
+    <button type="reset" onclick="clearData()" class="btn-clear">Reset</button>
+
+  </form>
+</section>
+
+<footer>
+  <p>Dibangunkan oleh AzA | Z-Takaful Interaktif</p>
+</footer>
+
+<script src="quotation.js"></script>
+</body>
+</html>
