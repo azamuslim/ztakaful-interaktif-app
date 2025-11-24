@@ -148,6 +148,7 @@ header {
 <script>
 let score = 0;
 let currentIndex = 0;
+let currentCategory = "general";
 
 let questions = {
 
@@ -202,10 +203,19 @@ let questions = {
       answer: 2
     }
   ]
-
 };
 
-let currentCategory = "general";
+//
+// ✅ AUTO BACA KATEGORI DARI LINK BUTTON
+//
+const urlParams = new URLSearchParams(window.location.search);
+const type = urlParams.get("type");
+
+if (type && questions[type]) {
+  currentCategory = type;
+}
+
+document.getElementById("quizCategory").value = currentCategory;
 
 function loadQuestion() {
   const qData = questions[currentCategory][currentIndex];
@@ -221,7 +231,6 @@ function loadQuestion() {
     const btn = document.createElement("button");
     btn.classList.add("option-btn");
     btn.innerText = opt;
-
     btn.onclick = () => checkAnswer(btn, index, qData.answer);
     optionsDiv.appendChild(btn);
   });
@@ -229,7 +238,6 @@ function loadQuestion() {
 
 function checkAnswer(button, selected, correct) {
   const allBtns = document.querySelectorAll(".option-btn");
-
   allBtns.forEach(btn => btn.disabled = true);
 
   if (selected === correct) {
@@ -245,11 +253,13 @@ function checkAnswer(button, selected, correct) {
 
 function nextQuestion() {
   currentIndex++;
+
   if (currentIndex >= questions[currentCategory].length) {
     alert("Quiz tamat! Skor akhir: " + score);
     currentIndex = 0;
     score = 0;
   }
+
   loadQuestion();
 }
 
