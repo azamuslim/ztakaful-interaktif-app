@@ -60,6 +60,48 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 15px;
 }
+.product-card {
+  background: linear-gradient(135deg, #0a1f44, #0f3a7a);
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.product-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.product-card h3 {
+  margin: 10px 0;
+  font-size: 18px;
+}
+
+.product-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.product-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 15px;
+  background: white;
+  color: #0a1f44;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.product-btn:hover {
+  background: #e0e0e0;
+}
+
 
 .card {
   background: white;
