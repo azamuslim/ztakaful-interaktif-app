@@ -1,65 +1,272 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8">
-  <title>Ztakaful Kuiz & Edukasi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Takaful | ZTakaful Interaktif</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+}
+
+header {
+  background: linear-gradient(135deg, #0a1f44, #0f3a7a);
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.quiz-container {
+  max-width: 700px;
+  margin: 20px auto;
+  padding: 15px;
+}
+
+.quiz-card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.quiz-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #0a1f44;
+  text-align: center;
+}
+
+.quiz-question {
+  font-size: 15px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.option-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: none;
+  background: #0a1f44;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.option-btn:hover {
+  background: #0f3a7a;
+}
+
+.option-btn.correct {
+  background: green;
+}
+
+.option-btn.wrong {
+  background: red;
+}
+
+.quiz-footer {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.control-btn {
+  padding: 8px 15px;
+  background: white;
+  border: 1px solid #0a1f44;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.control-btn:hover {
+  background: #0a1f44;
+  color: white;
+}
+
+.score-box {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: #0a1f44;
+  font-weight: bold;
+}
+
+.quiz-select {
+  margin-bottom: 10px;
+  padding: 8px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+</style>
 </head>
+
 <body>
 
-<header class="header">
-  <div class="logo-area">
-    <h2>🎯 Kuiz & Teka Bahagian</h2>
-  </div>
+<header>
+  <h2>Ztakaful Interaktif App</h2>
+  <p>Quiz Ilmu Takaful</p>
 </header>
 
-<section class="quiz-container">
+<div class="quiz-container">
+  <div class="quiz-card">
 
-  <div class="tabs">
-    <button onclick="showTab('quiz')">Kuiz</button>
-    <button onclick="showTab('teka')">Teka Bahagian</button>
-    <button onclick="showTab('score')">Scoreboard</button>
-  </div>
+    <div class="quiz-title">Quiz Interaktif</div>
 
-  <!-- ✅ TAB 1: QUIZ -->
-  <div id="quiz" class="tab-content">
-    <h3>🚘 Kuiz Kereta & Motosikal</h3>
+    <select id="quizCategory" class="quiz-select" onchange="changeCategory()">
+      <option value="general">Quiz Am Takaful</option>
+      <option value="vehicle">Quiz Kereta & Motosikal</option>
+      <option value="compare">Quiz Takaful vs Insurans</option>
+      <option value="guess">Teka Bahagian Kereta & Motor</option>
+    </select>
 
-    <div id="questionBox">
-      <p id="question">Soalan akan muncul di sini...</p>
-      <div id="answers"></div>
+    <div class="score-box">
+      Skor: <span id="score">0</span> / <span id="total">0</span>
     </div>
 
-    <p>Skor: <span id="score">0</span></p>
+    <div class="quiz-question" id="question">Soalan akan muncul di sini</div>
+    <div id="options"></div>
+
+    <div class="quiz-footer">
+      <button class="control-btn" onclick="nextQuestion()">Next</button>
+      <button class="control-btn" onclick="restartQuiz()">Restart</button>
+    </div>
+
   </div>
+</div>
 
-  <!-- ✅ TAB 2: TEKA PART -->
-  <div id="teka" class="tab-content" style="display:none;">
-    <h3>🔧 Teka Bahagian Kenderaan</h3>
+<script>
+let score = 0;
+let currentIndex = 0;
 
-    <img id="partImage" src="engine.png" alt="Bahagian kenderaan" style="width:200px;">
+let questions = {
 
-    <p>Bahagian ini ialah:</p>
-    <input type="text" id="guessInput" placeholder="Tulis jawapan...">
-    <button onclick="checkGuess()">Semak</button>
+  general: [
+    {
+      q: "Apa maksud Takaful?",
+      options: ["Sistem cukai", "Sistem perlindungan berasaskan kerjasama", "Pelaburan hartanah", "Pinjaman bank"],
+      answer: 1
+    },
+    {
+      q: "Konsep utama dalam takaful ialah?",
+      options: ["Riba", "Gharar", "Tabarru’", "Faedah"],
+      answer: 2
+    }
+  ],
 
-    <p id="guessResult"></p>
-  </div>
+  vehicle: [
+    {
+      q: "Apa kegunaan cukai jalan (road tax)?",
+      options: ["Bayar saman", "Kebenaran guna kenderaan di jalan", "Bayar insurans", "Minyak percuma"],
+      answer: 1
+    },
+    {
+      q: "Bahagian yang mengawal kelajuan kereta ialah?",
+      options: ["Brake", "Steering", "Throttle", "Clutch"],
+      answer: 2
+    }
+  ],
 
-  <!-- ✅ TAB 3: SCORE -->
-  <div id="score" class="tab-content" style="display:none;">
-    <h3>🏆 Scoreboard</h3>
-    <p>Skor Terkumpul: <span id="totalScore">0</span></p>
-    <button onclick="resetScore()">Reset Score</button>
-  </div>
+  compare: [
+    {
+      q: "Perbezaan utama takaful & insurans konvensional ialah?",
+      options: ["Harga", "Konsep syariah vs riba", "Warna kad", "Syarikat"],
+      answer: 1
+    },
+    {
+      q: "Dalam takaful, konsep perkongsian risiko dikenali sebagai?",
+      options: ["Tabarru’", "Riba", "Pinjaman", "Dividen"],
+      answer: 0
+    }
+  ],
 
-</section>
+  guess: [
+    {
+      q: "Bahagian ini digunakan untuk memberhentikan kenderaan.",
+      options: ["Gear", "Brake", "Radiator", "Alternator"],
+      answer: 1
+    },
+    {
+      q: "Komponen ini mengecas bateri kereta.",
+      options: ["Radiator", "Spark Plug", "Alternator", "Clutch"],
+      answer: 2
+    }
+  ]
 
-<footer>
-  <p>Z-Takaful Interaktif | Edu-Game Kenderaan</p>
-</footer>
+};
 
-<script src="quiz.js"></script>
+let currentCategory = "general";
+
+function loadQuestion() {
+  const qData = questions[currentCategory][currentIndex];
+
+  document.getElementById("question").innerText = qData.q;
+  document.getElementById("total").innerText = questions[currentCategory].length;
+  document.getElementById("score").innerText = score;
+
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+
+  qData.options.forEach((opt, index) => {
+    const btn = document.createElement("button");
+    btn.classList.add("option-btn");
+    btn.innerText = opt;
+
+    btn.onclick = () => checkAnswer(btn, index, qData.answer);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(button, selected, correct) {
+  const allBtns = document.querySelectorAll(".option-btn");
+
+  allBtns.forEach(btn => btn.disabled = true);
+
+  if (selected === correct) {
+    button.classList.add("correct");
+    score++;
+  } else {
+    button.classList.add("wrong");
+    allBtns[correct].classList.add("correct");
+  }
+
+  document.getElementById("score").innerText = score;
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= questions[currentCategory].length) {
+    alert("Quiz tamat! Skor akhir: " + score);
+    currentIndex = 0;
+    score = 0;
+  }
+  loadQuestion();
+}
+
+function restartQuiz() {
+  currentIndex = 0;
+  score = 0;
+  loadQuestion();
+}
+
+function changeCategory() {
+  currentCategory = document.getElementById("quizCategory").value;
+  currentIndex = 0;
+  score = 0;
+  loadQuestion();
+}
+
+loadQuestion();
+</script>
+
 </body>
 </html>
