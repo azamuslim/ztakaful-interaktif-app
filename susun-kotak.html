@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Susun Kotak | ZTakaful Games</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f6ff;
+  text-align: center;
+}
+
+header {
+  background: linear-gradient(135deg, #0a1f44, #0f3a7a);
+  color: white;
+  padding: 15px;
+}
+
+.container {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 10px;
+}
+
+h2 {
+  color: #0a1f44;
+  margin-bottom: 5px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 20px auto;
+}
+
+.tile {
+  background: #0f3a7a;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  padding: 25px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.tile:active {
+  transform: scale(0.95);
+}
+
+.empty {
+  background: #dce6f5;
+  cursor: default;
+}
+
+.score {
+  font-weight: bold;
+  color: #0a1f44;
+  margin: 10px 0;
+}
+
+.buttons {
+  margin-top: 10px;
+}
+
+.btn {
+  padding: 8px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  background: #0a1f44;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #0f3a7a;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>Susun Kotak Puzzle</h2>
+  <p>Ztakaful Interaktif Games</p>
+</header>
+
+<div class="container">
+
+  <div class="score">Move: <span id="moves">0</span></div>
+
+  <div class="board" id="board"></div>
+
+  <div class="buttons">
+    <button class="btn" onclick="shuffleTiles()">Restart</button>
+    <button class="btn" onclick="location.href='index.html'">Home</button>
+  </div>
+
+</div>
+
+<!-- Sound Effects -->
+<audio id="moveSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_13a4d3a3b3.mp3?filename=click-124467.mp3"></audio>
+<audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_248f717fde.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+
+<script>
+let tiles = [1,2,3,4,5,6,7,8,null];
+let moves = 0;
+
+const board = document.getElementById("board");
+const moveDisplay = document.getElementById("moves");
+
+function renderBoard() {
+  board.innerHTML = "";
+
+  tiles.forEach((tile, index) => {
+    const div = document.createElement("div");
+
+    if (tile === null) {
+      div.className = "tile empty";
+    } else {
+      div.className = "tile";
+      div.innerText = tile;
+      div.onclick = () => moveTile(index);
+    }
+
+    board.appendChild(div);
+  });
+}
+
+function moveTile(index) {
+  const emptyIndex = tiles.indexOf(null);
+  const validMoves = [
+    index - 1,
+    index + 1,
+    index - 3,
+    index + 3
+  ];
+
+  if (validMoves.includes(emptyIndex)) {
+    [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]];
+
+    moves++;
+    moveDisplay.innerText = moves;
+
+    document.getElementById("moveSound").play();
+    renderBoard();
+
+    checkWin();
+  }
+}
+
+function shuffleTiles() {
+  tiles.sort(() => Math.random() - 0.5);
+  moves = 0;
+  moveDisplay.innerText = moves;
+  renderBoard();
+}
+
+function checkWin() {
+  const correct = [1,2,3,4,5,6,7,8,null];
+
+  if (JSON.stringify(tiles) === JSON.stringify(correct)) {
+    document.getElementById("winSound").play();
+    setTimeout(() => {
+      alert("🎉 Tahniah! Anda berjaya susun semua kotak!");
+    }, 200);
+  }
+}
+
+shuffleTiles();
+</script>
+
+</body>
+</html>
