@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fruit Slice POWER | ZTakaful</title>
+
+<style>
+body {
+  margin: 0;
+  background: linear-gradient(#111827, #1f2937);
+  font-family: Arial, sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+header {
+  background: #0a1f44;
+  text-align: center;
+  padding: 10px;
+}
+
+#hud {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px;
+  background: #111;
+  font-weight: bold;
+}
+
+#gameArea {
+  position: relative;
+  width: 100%;
+  height: 75vh;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.fruit {
+  position: absolute;
+  font-size: 40px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.slice-line {
+  position: absolute;
+  background: white;
+  height: 3px;
+  width: 0;
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+button {
+  padding: 8px 15px;
+  margin: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #0a1f44;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0f3a7a;
+}
+
+#gameOver {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+#gameOverBox {
+  background: #0a1f44;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  width: 80%;
+  max-width: 300px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🍉 Fruit Slice POWER</h2>
+  <p>Ztakaful Interaktif Games</p>
+</header>
+
+<div id="hud">
+  <div>Score: <span id="score">0</span></div>
+  <div>Nyawa: <span id="lives">3</span></div>
+  <div>High: <span id="highScore">0</span></div>
+</div>
+
+<div id="gameArea"></div>
+
+<div style="text-align:center; padding:10px;">
+  <button onclick="startGame()">Start</button>
+  <button onclick="restartGame()">Restart</button>
+  <button onclick="window.location.href='index.html'">Home</button>
+</div>
+
+<div id="gameOver">
+  <div id="gameOverBox">
+    <h2>Game Over 💥</h2>
+    <p>Score: <span id="finalScore"></span></p>
+    <button onclick="restartGame()">Main Lagi</button>
+  </div>
+</div>
+
+<audio id="sliceSound" src="https://www.soundjay.com/mechanical/sounds/sword-1.mp3"></audio>
+<audio id="boomSound" src="https://www.soundjay.com/explosion/sounds/explosion-01.mp3"></audio>
+
+<script>
+let score = 0;
+let lives = 3;
+let gameRunning = false;
+
+const fruits = ["🍉","🍎","🍌","🍍","🍒","🥝"];
+const bomb = "💣";
+
+let spawnInterval;
+let highScore = localStorage.getItem("fruitHighScore") || 0;
+document.getElementById("highScore").innerText = highScore;
+
+function createFruit() {
+  if (!gameRunning) return;
+
+  const gameArea = document.getElementById("gameArea");
+  const fruit = document.createElement("div");
+  fruit.className = "fruit";
+
+  let isBomb = Math.random() < 0.15;
+  fruit.innerText = isBomb ? bomb : fruits[Math.floor(Math.random() * fruits.length)];
+
+  fruit.style.left = Math.random() * (window.innerWidth - 50) + "px";
+  fruit.style.top = "100%";
+
+  let speed = Math.random() * 2 + 2;
+
+  let y = window.innerHeight;
+  let x = parseFloat(fruit.style.left);
+
+  gameArea.appendChild(fruit);
+
+  function fall() {
+    if (!gameRunning) return;
+
+    y -= speed;
+    fruit.style.top = y + "px";
+
+    if (y < -50) {
+      if (!isBomb) {
+        lives--;
+        document.getElementById("lives").innerText = lives;
+      }
+      fruit.remove();
+
+      if (lives <= 0) endGame();
+      return;
+    }
+
+    requestAnimationFrame(fall);
+  }
+
+  fruit.onclick = () => {
+    if (!gameRunning) return;
+
+    if (isBomb) {
+      document.getElementById("boomSound").play();
+      endGame();
+    } else {
+      document.getElementById("sliceSound").play();
+      score++;
+      document.getElementById("score").innerText = score;
+      fruit.remove();
+    }
+  };
+
+  fall();
+}
+
+function startGame() {
+  if (gameRunning) return;
+  gameRunning = true;
+
+  spawnInterval = setInterval(createFruit, 800);
+}
+
+function restartGame() {
+  clearInterval(spawnInterval);
+
+  score = 0;
+  lives = 3;
+  gameRunning = false;
+
+  document.getElementById("score").innerText = score;
+  document.getElementById("lives").innerText = lives;
+  document.getElementById("gameArea").innerHTML = "";
+  document.getElementById("gameOver").style.display = "none";
+
+  startGame();
+}
+
+function endGame() {
+  clearInterval(spawnInterval);
+  gameRunning = false;
+
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("fruitHighScore", highScore);
+  }
+
+  document.getElementById("highScore").innerText = highScore;
+  document.getElementById("finalScore").innerText = score;
+  document.getElementById("gameOver").style.display = "flex";
+}
+</script>
+
+</body>
+</html>
