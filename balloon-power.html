@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balloon Pop POWER | ZTakaful</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#6ec6ff, #ffffff);
+  overflow: hidden;
+}
+
+header {
+  background: #0a1f44;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+#hud {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px;
+  background: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+#gameArea {
+  position: relative;
+  height: 78vh;
+  overflow: hidden;
+  background: linear-gradient(#a0d8ff, #ffffff);
+}
+
+.balloon {
+  position: absolute;
+  bottom: -120px;
+  border-radius: 50%;
+  cursor: pointer;
+  animation: floatUp linear forwards;
+}
+
+.balloon::after {
+  content: "";
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  width: 2px;
+  height: 15px;
+  background: #444;
+}
+
+@keyframes floatUp {
+  from { bottom: -120px; }
+  to { bottom: 100%; }
+}
+
+#controls {
+  text-align: center;
+  padding: 10px;
+  background: #fff;
+}
+
+button {
+  padding: 8px 15px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  margin: 5px;
+  background: #0a1f44;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover { background:#0f3a7a; }
+
+#gameOverScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+#gameOverBox {
+  background: #0a1f44;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  width: 80%;
+  max-width: 300px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🎈 Balloon Pop POWER</h2>
+  <p>Level • Nyawa • Timer • High Score</p>
+</header>
+
+<div id="hud">
+  <div>Score: <span id="score">0</span></div>
+  <div>Level: <span id="level">1</span></div>
+  <div>Nyawa: <span id="lives">3</span></div>
+  <div>Masa: <span id="time">30</span>s</div>
+</div>
+
+<div id="gameArea"></div>
+
+<div id="controls">
+  <button onclick="startGame()">Start</button>
+  <button onclick="stopGame()">Stop</button>
+  <button onclick="restartGame()">Restart</button>
+  <button onclick="window.location.href='index.html'">Home</button>
+</div>
+
+<div id="gameOverScreen">
+  <div id="gameOverBox">
+    <h2>Game Over 🛑</h2>
+    <p>Score: <span id="finalScore"></span></p>
+    <p>High Score: <span id="highScore"></span></p>
+    <button onclick="restartGame()">Main Lagi</button>
+  </div>
+</div>
+
+<audio id="popSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+<audio id="failSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<script>
+let score = 0;
+let level = 1;
+let lives = 3;
+let timeLeft = 30;
+let gameRunning = false;
+
+let balloonSpeed = 500;
+let gameInterval;
+let timerInterval;
+
+const colors = ["red","blue","green","orange","purple","pink","yellow"];
+
+function createBalloon() {
+  const gameArea = document.getElementById("gameArea");
+  const balloon = document.createElement("div");
+  balloon.className = "balloon";
+
+  const size = Math.random() * 30 + 40;
+  const color = colors[Math.floor(Math.random() * colors.length)];
+
+  balloon.style.width = size + "px";
+  balloon.style.height = size + "px";
+  balloon.style.background = color;
+
+  balloon.style.left = Math.random() * (window.innerWidth - 80) + "px";
+
+  let duration = Math.max(1.5, 4 - level * 0.4);
+  balloon.style.animationDuration = duration + "s";
+
+  balloon.onclick = () => {
+    document.getElementById("popSound").play();
+    score += 1;
+    document.getElementById("score").innerText = score;
+    balloon.remove();
+
+    if (score % 10 === 0) {
+      levelUp();
+    }
+  };
+
+  gameArea.appendChild(balloon);
+
+  balloon.addEventListener("animationend", () => {
+    if (gameRunning) {
+      lives--;
+      document.getElementById("lives").innerText = lives;
+      document.getElementById("failSound").play();
+    }
+
+    balloon.remove();
+
+    if (lives <= 0) {
+      endGame();
+    }
+  });
+}
+
+function startGame() {
+  if (!gameRunning) {
+    gameRunning = true;
+
+    gameInterval = setInterval(createBalloon, balloonSpeed);
+
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      document.getElementById("time").innerText = timeLeft;
+
+      if (timeLeft <= 0) {
+        endGame();
+      }
+    }, 1000);
+  }
+}
+
+function stopGame() {
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+  gameRunning = false;
+}
+
+function restartGame() {
+  stopGame();
+  score = 0;
+  level = 1;
+  lives = 3;
+  timeLeft = 30;
+
+  document.getElementById("score").innerText = score;
+  document.getElementById("level").innerText = level;
+  document.getElementById("lives").innerText = lives;
+  document.getElementById("time").innerText = timeLeft;
+
+  document.getElementById("gameOverScreen").style.display = "none";
+  document.getElementById("gameArea").innerHTML = "";
+
+  startGame();
+}
+
+function levelUp() {
+  level++;
+  document.getElementById("level").innerText = level;
+  balloonSpeed = Math.max(200, 500 - level * 50);
+  clearInterval(gameInterval);
+  gameInterval = setInterval(createBalloon, balloonSpeed);
+}
+
+function endGame() {
+  stopGame();
+
+  let storedHigh = localStorage.getItem("balloonHighScore") || 0;
+
+  if (score > storedHigh) {
+    localStorage.setItem("balloonHighScore", score);
+    storedHigh = score;
+  }
+
+  document.getElementById("finalScore").innerText = score;
+  document.getElementById("highScore").innerText = storedHigh;
+
+  document.getElementById("gameOverScreen").style.display = "flex";
+}
+</script>
+
+</body>
+</html>
