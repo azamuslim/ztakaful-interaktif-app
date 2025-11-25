@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game | ZTakaful Games</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f6ff;
+  text-align: center;
+}
+
+header {
+  background: linear-gradient(135deg, #0a1f44, #0f3a7a);
+  color: white;
+  padding: 15px;
+}
+
+.container {
+  max-width: 420px;
+  margin: 10px auto;
+  padding: 10px;
+}
+
+h2 {
+  margin: 5px;
+  color: #0a1f44;
+}
+
+canvas {
+  background: #ffffff;
+  border: 2px solid #0a1f44;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.score {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  color: #0a1f44;
+  margin-top: 10px;
+}
+
+.controls {
+  margin-top: 10px;
+}
+
+.ctrl-btn {
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 10px;
+  border: none;
+  background: #0a1f44;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.ctrl-btn:active {
+  background: #0f3a7a;
+  transform: scale(0.95);
+}
+
+.dpad {
+  margin-top: 10px;
+}
+
+.dpad button {
+  width: 60px;
+  height: 60px;
+  font-size: 20px;
+}
+
+.grid-controls {
+  display: grid;
+  grid-template-columns: 60px 60px 60px;
+  gap: 8px;
+  justify-content: center;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🐍 Snake Game</h2>
+  <p>Ztakaful Interaktif Games</p>
+</header>
+
+<div class="container">
+
+  <div class="score">
+    <div>Markah: <span id="score">0</span></div>
+    <div>HighScore: <span id="highScore">0</span></div>
+  </div>
+
+  <canvas id="gameCanvas" width="360" height="360"></canvas>
+
+  <div class="controls">
+    <button class="ctrl-btn" onclick="startGame()">Start</button>
+    <button class="ctrl-btn" onclick="restartGame()">Restart</button>
+    <button class="ctrl-btn" onclick="location.href='index.html'">Home</button>
+  </div>
+
+  <!-- D-Pad Control -->
+  <div class="dpad">
+    <div class="grid-controls">
+      <div></div>
+      <button onclick="changeDirection('UP')">⬆️</button>
+      <div></div>
+
+      <button onclick="changeDirection('LEFT')">⬅️</button>
+      <div></div>
+      <button onclick="changeDirection('RIGHT')">➡️</button>
+
+      <div></div>
+      <button onclick="changeDirection('DOWN')">⬇️</button>
+      <div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SOUND -->
+<audio id="eatSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_167c5e3b59.mp3?filename=pop-39222.mp3"></audio>
+<audio id="gameOverSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_7f9cd0ac9b.mp3?filename=error-126627.mp3"></audio>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const box = 20;
+let snake = [{x: 180, y: 180}];
+let direction = "RIGHT";
+let food = generateFood();
+let score = 0;
+let highScore = localStorage.getItem("snakeHigh") || 0;
+
+let game;
+document.getElementById("highScore").innerText = highScore;
+
+function generateFood() {
+  return {
+    x: Math.floor(Math.random() * 18) * box,
+    y: Math.floor(Math.random() * 18) * box
+  };
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw snake
+  snake.forEach((part, index) => {
+    ctx.fillStyle = index === 0 ? "#0a1f44" : "#0f3a7a";
+    ctx.fillRect(part.x, part.y, box, box);
+  });
+
+  // Draw food
+  ctx.fillStyle = "red";
+  ctx.fillRect(food.x, food.y, box, box);
+
+  // Move snake
+  let head = {x: snake[0].x, y: snake[0].y};
+
+  if (direction === "LEFT") head.x -= box;
+  if (direction === "RIGHT") head.x += box;
+  if (direction === "UP") head.y -= box;
+  if (direction === "DOWN") head.y += box;
+
+  // Game over - wall
+  if (
+    head.x < 0 || head.y < 0 ||
+    head.x >= canvas.width || head.y >= canvas.height ||
+    collision(head, snake)
+  ) {
+    gameOver();
+    return;
+  }
+
+  snake.unshift(head);
+
+  // Eat food
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    document.getElementById("score").innerText = score;
+    document.getElementById("eatSound").play();
+    food = generateFood();
+
+    if (score % 5 === 0) {
+      speedUp();
+    }
+  } else {
+    snake.pop();
+  }
+}
+
+function collision(head, array) {
+  for (let i = 1; i < array.length; i++) {
+    if (head.x === array[i].x && head.y === array[i].y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+let speed = 150;
+
+function speedUp() {
+  clearInterval(game);
+  speed = speed - 10;
+  game = setInterval(draw, speed);
+}
+
+function startGame() {
+  clearInterval(game);
+  game = setInterval(draw, speed);
+}
+
+function restartGame() {
+  snake = [{x: 180, y: 180}];
+  direction = "RIGHT";
+  score = 0;
+  speed = 150;
+  document.getElementById("score").innerText = score;
+  food = generateFood();
+  clearInterval(game);
+  game = setInterval(draw, speed);
+}
+
+function gameOver() {
+  clearInterval(game);
+  document.getElementById("gameOverSound").play();
+
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("snakeHigh", highScore);
+    document.getElementById("highScore").innerText = highScore;
+  }
+
+  setTimeout(() => {
+    alert("Game Over! Skor anda: " + score);
+  }, 200);
+}
+
+// Keyboard control
+document.addEventListener("keydown", function(e) {
+  if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+  if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+  if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+  if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+});
+
+function changeDirection(dir) {
+  if (dir === "LEFT" && direction !== "RIGHT") direction = "LEFT";
+  if (dir === "RIGHT" && direction !== "LEFT") direction = "RIGHT";
+  if (dir === "UP" && direction !== "DOWN") direction = "UP";
+  if (dir === "DOWN" && direction !== "UP") direction = "DOWN";
+}
+
+// Swipe mobile control
+let startX, startY;
+
+canvas.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+});
+
+canvas.addEventListener("touchend", e => {
+  let endX = e.changedTouches[0].clientX;
+  let endY = e.changedTouches[0].clientY;
+
+  let diffX = endX - startX;
+  let diffY = endY - startY;
+
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    if (diffX > 0 && direction !== "LEFT") direction = "RIGHT";
+    else if (diffX < 0 && direction !== "RIGHT") direction = "LEFT";
+  } else {
+    if (diffY > 0 && direction !== "UP") direction = "DOWN";
+    else if (diffY < 0 && direction !== "DOWN") direction = "UP";
+  }
+});
+</script>
+
+</body>
+</html>
