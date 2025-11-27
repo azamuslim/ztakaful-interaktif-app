@@ -6,25 +6,33 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #0a1f44, #123b7a);
-  color: white;
+  background: #003a8f; /* Zurich blue */
   padding: 15px;
+  color: white;
 }
 
 .header-content {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
 }
 
 .logo {
-  width: 60px;
+  width: 120px;
+  height: auto;
 }
 
 .title h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
 }
+
+.title p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
 
 .info-bar {
   display: flex;
