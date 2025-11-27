@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Berita | ZTakaful Interaktif</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0a1f44, #123c88);
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      color: #333;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-top: 5px;
+    }
+
+    .btn-primary {
+      background: #123c88;
+      color: white;
+    }
+
+    .btn-danger {
+      background: crimson;
+      color: white;
+    }
+
+    .btn-edit {
+      background: orange;
+      color: white;
+    }
+
+    .btn-home {
+      background: black;
+      color: white;
+      margin-top: 15px;
+    }
+
+    .news-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+
+    .news-item h3 {
+      margin: 0;
+      color: #123c88;
+    }
+
+    .date {
+      font-size: 13px;
+      color: gray;
+    }
+
+    @media(max-width:600px) {
+      body {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>Admin Berita Semasa</h1>
+  <p style="text-align:center;">(Untuk Neolanz kemaskini info)</p>
+
+  <!-- FORM INPUT -->
+  <div class="card">
+    <h2>➕ Tambah / Edit Berita</h2>
+
+    <input type="hidden" id="editIndex">
+    
+    <label>Title Berita</label>
+    <input type="text" id="title" placeholder="Contoh: Promosi Takaful Motor Disember">
+
+    <label>Isi Berita</label>
+    <textarea id="content" rows="5" placeholder="Masukkan info penuh berita..."></textarea>
+
+    <button class="btn-primary" onclick="saveNews()">Simpan Berita</button>
+  </div>
+
+  <!-- SENARAI BERITA -->
+  <div class="card">
+    <h2>📢 Senarai Berita</h2>
+
+    <div id="newsList"></div>
+  </div>
+
+  <!-- HOME BUTTON -->
+  <button class="btn-home" onclick="window.location.href='index.html'">
+    ⬅ Kembali ke Home
+  </button>
+
+</div>
+
+<script>
+let newsData = JSON.parse(localStorage.getItem("ztakafulNews")) || [];
+
+function saveNews() {
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+  const editIndex = document.getElementById("editIndex").value;
+
+  if (title === "" || content === "") {
+    alert("Sila isi semua maklumat berita Bro 😎");
+    return;
+  }
+
+  const date = new Date().toLocaleString("ms-MY");
+
+  const newsItem = { title, content, date };
+
+  if (editIndex) {
+    newsData[editIndex] = newsItem;
+    document.getElementById("editIndex").value = "";
+  } else {
+    newsData.unshift(newsItem);
+  }
+
+  localStorage.setItem("ztakafulNews", JSON.stringify(newsData));
+
+  document.getElementById("title").value = "";
+  document.getElementById("content").value = "";
+
+  loadNews();
+}
+
+function loadNews() {
+  const list = document.getElementById("newsList");
+  list.innerHTML = "";
+
+  if (newsData.length === 0) {
+    list.innerHTML = "<p>Belum ada berita lagi…</p>";
+    return;
+  }
+
+  newsData.forEach((item, index) => {
+    list.innerHTML += `
+      <div class="news-item">
+        <h3>${item.title}</h3>
+        <div class="date">${item.date}</div>
+        <p>${item.content}</p>
+
+        <button class="btn-edit" onclick="editNews(${index})">Edit</button>
+        <button class="btn-danger" onclick="deleteNews(${index})">Delete</button>
+      </div>
+    `;
+  });
+}
+
+function editNews(index) {
+  document.getElementById("title").value = newsData[index].title;
+  document.getElementById("content").value = newsData[index].content;
+  document.getElementById("editIndex").value = index;
+  window.scrollTo(0,0);
+}
+
+function deleteNews(index) {
+  if (confirm("Confirm delete berita ni Bro?")) {
+    newsData.splice(index, 1);
+    localStorage.setItem("ztakafulNews", JSON.stringify(newsData));
+    loadNews();
+  }
+}
+
+// Load awal bila page buka
+loadNews();
+</script>
+
+</body>
+</html>
