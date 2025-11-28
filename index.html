@@ -21,12 +21,35 @@
 
 <!-- INFO BAR -->
 <section class="info-bar">
+
+  <div class="info-box">
+    📍 Negeri:
+    <select id="stateSelect">
+      <option value="WLY01">Kuala Lumpur / Putrajaya</option>
+      <option value="JHR01">Johor</option>
+      <option value="KDH01">Kedah</option>
+      <option value="KTN01">Kelantan</option>
+      <option value="MLK01">Melaka</option>
+      <option value="NSN01">Negeri Sembilan</option>
+      <option value="PHG01">Pahang</option>
+      <option value="PNG01">Pulau Pinang</option>
+      <option value="PRK01">Perak</option>
+      <option value="PLS01">Perlis</option>
+      <option value="SBH01">Sabah</option>
+      <option value="SWK01">Sarawak</option>
+      <option value="SGR01">Selangor</option>
+      <option value="TRG01">Terengganu</option>
+    </select>
+  </div>
+
   <div class="info-box" id="solatBox">🕌 Loading waktu solat...</div>
   <div class="info-box" id="cuacaBox">☁️ Loading cuaca...</div>
-  <div class="info-box">👁️ Pengunjung: <span id="visitCount"></span></div>
+  <div class="info-box">👁️ Pengunjung: <span id="visitCount">0</span></div>
+
 </section>
 
-<script src="js/api-info.js"></script>
+<script src="js/info-api.js" defer></script>
+
 
 
 
