@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "TRG01": "Terengganu"
   };
 
-  const WEATHER_API_KEY = "MASUK_API_KEY_OPENWEATHER";  
+  const WEATHER_API_KEY = "ef8071d4d83f5a4dfbef9175c688e03c";  
 
   // Set dropdown value & event
   if(stateSelect){
