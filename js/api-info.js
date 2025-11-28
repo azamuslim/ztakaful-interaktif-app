@@ -1,53 +1,75 @@
-// ========== CONFIG ==========
-const negeri = "Penang";  // Tukar ikut negeri Neolanz
-const lokasi = "George Town";
+// ===============================
+// CONFIG DEFAULT
+// ===============================
+const JAKIM_ZONE = "WLY01";   // KL & Putrajaya
+const CITY = "Kuala Lumpur";
+const COUNTRY = "MY";
 
-const openWeatherApiKey = "ef8071d4d83f5a4dfbef9175c688e03c";
+// 👉 Tukar ni dgn API Key OpenWeather Neolanz
+const WEATHER_API_KEY = "ef8071d4d83f5a4dfbef9175c688e03c";
 
-// ========== WAKTU SOLAT (API JAKIM / ALADHAN) ==========
+// ===============================
+// WAKTU SOLAT - JAKIM API
+// ===============================
 async function loadWaktuSolat() {
   try {
     const response = await fetch(
-      `https://api.aladhan.com/v1/timings?city=${lokasi}&country=Malaysia&method=11`
+      `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=today&zone=${JAKIM_ZONE}`
     );
+
     const data = await response.json();
+    const waktu = data.prayerTime[0];
 
-    const waktu = data.data.timings;
-
-    document.getElementById("waktu-solat").innerHTML = `
-      🕌 Subuh: ${waktu.Fajr} |
-      Zohor: ${waktu.Dhuhr} |
-      Asar: ${waktu.Asr} |
-      Maghrib: ${waktu.Maghrib} |
-      Isyak: ${waktu.Isha}
+    document.getElementById("solatBox").innerHTML = `
+      🕌 Subuh: ${waktu.fajr} | 
+      Zohor: ${waktu.dhuhr} | 
+      Maghrib: ${waktu.maghrib}
     `;
   } catch (error) {
-    document.getElementById("waktu-solat").innerText =
-      "🕌 Waktu Solat: Gagal load";
+    document.getElementById("solatBox").innerText = "Gagal load waktu solat";
+    console.error("Waktu solat error:", error);
   }
 }
 
-// ========== CUACA (OPENWEATHER API) ==========
+// ===============================
+// CUACA API - OPENWEATHER
+// ===============================
 async function loadCuaca() {
   try {
     const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${lokasi},MY&units=metric&appid=${openWeatherApiKey}`
+      `https://api.openweathermap.org/data/2.5/weather?q=${CITY},${COUNTRY}&appid=${WEATHER_API_KEY}&units=metric`
     );
 
     const data = await response.json();
 
-    const suhu = data.main.temp;
+    const suhu = Math.round(data.main.temp);
     const cuaca = data.weather[0].description;
 
-    document.getElementById("info-cuaca").innerHTML = `
-      ☁️ ${lokasi} | ${suhu}°C | ${cuaca}
+    document.getElementById("cuacaBox").innerHTML = `
+      ☁️ ${CITY} | ${suhu}°C | ${cuaca}
     `;
   } catch (error) {
-    document.getElementById("info-cuaca").innerText =
-      "☁️ Cuaca: Gagal load";
+    document.getElementById("cuacaBox").innerText = "Gagal load cuaca";
+    console.error("Cuaca error:", error);
   }
 }
 
-// ========== LOAD ==========
+// ===============================
+// COUNTER PENGUNJUNG (LOCAL)
+// ===============================
+let visit = localStorage.getItem("visitCount") || 0;
+visit++;
+localStorage.setItem("visitCount", visit);
+document.getElementById("visitCount").innerText = visit;
+
+// ===============================
+// INIT LOAD
+// ===============================
 loadWaktuSolat();
 loadCuaca();
+
+// Refresh setiap 10 minit
+setInterval(() => {
+  loadWaktuSolat();
+  loadCuaca();
+}, 600000);
