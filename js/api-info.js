@@ -2,7 +2,7 @@
 const negeri = "Penang";  // Tukar ikut negeri Neolanz
 const lokasi = "George Town";
 
-const openWeatherApiKey = "ISI_API_KEY_OPENWEATHER_KAU";
+const openWeatherApiKey = "ef8071d4d83f5a4dfbef9175c688e03c";
 
 // ========== WAKTU SOLAT (API JAKIM / ALADHAN) ==========
 async function loadWaktuSolat() {
