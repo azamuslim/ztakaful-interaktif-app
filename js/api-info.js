@@ -1,15 +1,57 @@
 // ===============================
-// CONFIG DEFAULT
+// DEFAULT SETTINGS
 // ===============================
-const JAKIM_ZONE = "WLY01";   // KL & Putrajaya
-const CITY = "Kuala Lumpur";
-const COUNTRY = "MY";
+let JAKIM_ZONE = localStorage.getItem("zone") || "WLY01";
+let CITY = localStorage.getItem("city") || "Kuala Lumpur";
 
-// 👉 Tukar ni dgn API Key OpenWeather Neolanz
+const STATE_MAP = {
+  "WLY01": "Kuala Lumpur",
+  "JHR01": "Johor",
+  "KDH01": "Kedah",
+  "KTN01": "Kelantan",
+  "MLK01": "Melaka",
+  "NSN01": "Negeri Sembilan",
+  "PHG01": "Pahang",
+  "PNG01": "Pulau Pinang",
+  "PRK01": "Perak",
+  "PLS01": "Perlis",
+  "SBH01": "Sabah",
+  "SWK01": "Sarawak",
+  "SGR01": "Selangor",
+  "TRG01": "Terengganu"
+};
+
+// 👉 Tukar API KEY ni dgn key OpenWeather Neolanz
 const WEATHER_API_KEY = "ef8071d4d83f5a4dfbef9175c688e03c";
 
 // ===============================
-// WAKTU SOLAT - JAKIM API
+// SET DEFAULT DROPDOWN VALUE
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+  const select = document.getElementById("stateSelect");
+
+  select.value = JAKIM_ZONE;
+
+  select.addEventListener("change", () => {
+    JAKIM_ZONE = select.value;
+    CITY = STATE_MAP[JAKIM_ZONE];
+
+    // Simpan dalam localStorage
+    localStorage.setItem("zone", JAKIM_ZONE);
+    localStorage.setItem("city", CITY);
+
+    // Reload API
+    loadWaktuSolat();
+    loadCuaca();
+  });
+
+  loadWaktuSolat();
+  loadCuaca();
+  updateVisitor();
+});
+
+// ===============================
+// WAKTU SOLAT - JAKIM
 // ===============================
 async function loadWaktuSolat() {
   try {
@@ -23,21 +65,23 @@ async function loadWaktuSolat() {
     document.getElementById("solatBox").innerHTML = `
       🕌 Subuh: ${waktu.fajr} | 
       Zohor: ${waktu.dhuhr} | 
-      Maghrib: ${waktu.maghrib}
+      Asar: ${waktu.asr} | 
+      Maghrib: ${waktu.maghrib} | 
+      Isyak: ${waktu.isha}
     `;
   } catch (error) {
     document.getElementById("solatBox").innerText = "Gagal load waktu solat";
-    console.error("Waktu solat error:", error);
+    console.error("Solat error:", error);
   }
 }
 
 // ===============================
-// CUACA API - OPENWEATHER
+// CUACA - OPENWEATHER
 // ===============================
 async function loadCuaca() {
   try {
     const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${CITY},${COUNTRY}&appid=${WEATHER_API_KEY}&units=metric`
+      `https://api.openweathermap.org/data/2.5/weather?q=${CITY},MY&appid=${WEATHER_API_KEY}&units=metric`
     );
 
     const data = await response.json();
@@ -55,20 +99,18 @@ async function loadCuaca() {
 }
 
 // ===============================
-// COUNTER PENGUNJUNG (LOCAL)
+// VISITOR COUNTER (LOCAL)
 // ===============================
-let visit = localStorage.getItem("visitCount") || 0;
-visit++;
-localStorage.setItem("visitCount", visit);
-document.getElementById("visitCount").innerText = visit;
+function updateVisitor() {
+  let visit = localStorage.getItem("visitCount") || 0;
+  visit++;
+  localStorage.setItem("visitCount", visit);
+  document.getElementById("visitCount").innerText = visit;
+}
 
 // ===============================
-// INIT LOAD
+// AUTO REFRESH EVERY 10 MIN
 // ===============================
-loadWaktuSolat();
-loadCuaca();
-
-// Refresh setiap 10 minit
 setInterval(() => {
   loadWaktuSolat();
   loadCuaca();
