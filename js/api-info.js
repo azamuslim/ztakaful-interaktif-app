@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const visitCount = document.getElementById("visitCount");
   const stateSelect = document.getElementById("stateSelect");
 
+  // Default / LocalStorage
   let JAKIM_ZONE = localStorage.getItem("zone") || "WLY01";
   let CITY = localStorage.getItem("city") || "Kuala Lumpur";
 
@@ -25,8 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
     "TRG01": "Terengganu"
   };
 
-  const WEATHER_API_KEY = "ef8071d4d83f5a4dfbef9175c688e03c";  
+  const WEATHER_API_KEY = "MASUK_API_KEY_OPENWEATHER";  
 
+  // Set dropdown value & event
   if(stateSelect){
     stateSelect.value = JAKIM_ZONE;
 
@@ -34,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       JAKIM_ZONE = stateSelect.value;
       CITY = STATE_MAP[JAKIM_ZONE];
 
+      // save to localStorage
       localStorage.setItem("zone", JAKIM_ZONE);
       localStorage.setItem("city", CITY);
 
@@ -42,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // INIT LOAD
   loadSolat();
   loadCuaca();
   updateVisitor();
@@ -51,16 +55,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // =======================
   async function loadSolat() {
     solatBox.innerText = "🕌 Loading waktu solat...";
-
     try {
       const response = await fetch(
         `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=today&zone=${JAKIM_ZONE}`,
         { cache: "no-store" }
       );
-
       const data = await response.json();
 
-      if (!data.prayerTime || !data.prayerTime[0]) {
+      if(!data.prayerTime || !data.prayerTime[0]){
         solatBox.innerText = "❌ Data solat tiada";
         return;
       }
@@ -77,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (err) {
       solatBox.innerText = "❌ API Solat Problem";
-      console.error("Solat Error:", err);
+      console.error(err);
     }
   }
 
@@ -86,15 +88,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // =======================
   async function loadCuaca() {
     cuacaBox.innerText = "☁️ Loading cuaca...";
-
     try {
       const res = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${CITY},MY&appid=${WEATHER_API_KEY}&units=metric`
       );
-
       const data = await res.json();
 
-      if (data.cod !== 200) {
+      if(data.cod !== 200){
         cuacaBox.innerText = "❌ Cuaca error";
         return;
       }
@@ -103,10 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const desc = data.weather[0].description;
 
       cuacaBox.innerHTML = `☁️ ${CITY} | ${temp}°C | ${desc}`;
-
-    } catch (err) {
+    } catch(err){
       cuacaBox.innerText = "❌ API Cuaca Problem";
-      console.error("Cuaca Error:", err);
+      console.error(err);
     }
   }
 
@@ -120,9 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     visitCount.innerText = count;
   }
 
-  // =======================
-  // AUTO REFRESH
-  // =======================
+  // AUTO REFRESH 10 min
   setInterval(() => {
     loadSolat();
     loadCuaca();
