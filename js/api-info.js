@@ -57,36 +57,48 @@ document.addEventListener("DOMContentLoaded", () => {
   updateVisitor();
 
   // =========================
-  // WORKAROUND: JAKIM API
-  // =========================
-  async function loadSolat() {
-    solatBox.innerHTML = "🕌 Loading waktu solat...";
+  // =======================
+// WAKTU SOLAT JAKIM (Fix User-Agent)
+// =======================
+async function loadSolat() {
+  solatBox.innerText = "🕌 Loading waktu solat...";
 
-    try {
-      const proxy = "https://api.allorigins.win/raw?url=";
-
-      const apiURL =
-        `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=today&zone=${JAKIM_ZONE}`;
-
-      const response = await fetch(proxy + encodeURIComponent(apiURL));
-
-      const data = await response.json();
-
-      const w = data?.prayerTime?.[0];
-
-      if (!w) {
-        solatBox.innerHTML = "❌ Tidak dapat ambil waktu solat";
-        return;
+  try {
+    const response = await fetch(
+      `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=today&zone=${JAKIM_ZONE}`,
+      {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "User-Agent": "Mozilla/5.0", 
+          "Accept": "application/json"
+        }
       }
+    );
 
-      solatBox.innerHTML =
-        `🕌 Subuh: ${w.fajr} | Zohor: ${w.dhuhr} | Asar: ${w.asr} | Maghrib: ${w.maghrib} | Isyak: ${w.isha}`;
+    const data = await response.json();
 
-    } catch (e) {
-      solatBox.innerHTML = "❌ Waktu solat gagal dimuat";
-      console.log("JAKIM error:", e);
+    if (!data.prayerTime || !data.prayerTime[0]) {
+      solatBox.innerText = "❌ Waktu solat tidak tersedia";
+      return;
     }
+
+    const w = data.prayerTime[0];
+
+    solatBox.innerHTML = `
+      🕌 Subuh: ${w.fajr} |
+      Zohor: ${w.dhuhr} |
+      Asar: ${w.asr} |
+      Maghrib: ${w.maghrib} |
+      Isyak: ${w.isha}
+    `;
+
+  } catch (err) {
+    solatBox.innerText = "❌ API Solat Bermasalah";
+    console.error("Solat Error:", err);
   }
+}
+
 
   // =========================
   // WEATHER API
