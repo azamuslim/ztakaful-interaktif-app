@@ -1,103 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Balloon Pop Game</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #f0f8ff;
-      touch-action: manipulation;
-      font-family: sans-serif;
-    }
-    #score {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 24px;
-      font-weight: bold;
-      background: rgba(255,255,255,0.7);
-      padding: 8px 14px;
-      border-radius: 8px;
-    }
-    canvas {
-      display: block;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Balloon Pop Ultra</title>
+<style>
+  body {
+    margin: 0;
+    background: linear-gradient(#75c8ff, #ffffff);
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
+
+  #topUI {
+    position: fixed;
+    top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 15px;
+    z-index: 50;
+  }
+
+  .ui-box {
+    background: #fff;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  button {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  #btnPause { background: orange; }
+  #btnRestart { background: #28a745; color: white; }
+  #btnHome { background: #333; color: white; }
+
+  .balloon {
+    position: absolute;
+    width: 70px;
+    height: 90px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .bomb {
+    background: black !important;
+    border: 3px solid red;
+  }
+
+  .gold {
+    background: gold !important;
+    border: 3px solid orange;
+  }
+</style>
 </head>
+
 <body>
-  <div id="score">Score: 0</div>
-  <canvas id="gameCanvas"></canvas>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreEl = document.getElementById('score');
+<div id="topUI">
+  <div class="ui-box">Score: <span id="score">0</span></div>
+  <div class="ui-box">Level: <span id="level">1</span></div>
+  <div class="ui-box">Time: <span id="timer">60</span>s</div>
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  <button id="btnPause">Pause</button>
+  <button id="btnRestart">Restart</button>
+  <button id="btnHome" onclick="window.location.href='index.html'">Home</button>
+</div>
 
-    let balloons = [];
-    let score = 0;
+<script>
+// ----------------------
+// SOUNDS
+// ----------------------
+const popSound = new Audio("sounds/pop.mp3");
+const bombSound = new Audio("sounds/bomb.mp3");
+const bonusSound = new Audio("sounds/bonus.mp3");
 
-    const popSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-fast-small-sweep-transition-166.wav');
+// ----------------------
+let score = 0;
+let level = 1;
+let gameSpeed = 1;
+let isPaused = false;
+let gameTime = 60;
+let timerInterval;
 
-    function randomColor() {
-      const colors = ['#ff6384','#36a2eb','#ffce56','#4bc0c0','#9966ff','#ff9f40'];
-      return colors[Math.floor(Math.random() * colors.length)];
+document.getElementById("score").innerText = score;
+document.getElementById("level").innerText = level;
+
+// START TIMER
+function startTimer() {
+  timerInterval = setInterval(() => {
+    if (!isPaused) {
+      gameTime--;
+      document.getElementById("timer").innerText = gameTime;
+
+      if (gameTime <= 0) endGame();
+    }
+  }, 1000);
+}
+
+startTimer();
+
+function pauseGame() {
+  isPaused = !isPaused;
+  document.getElementById("btnPause").innerText = isPaused ? "Resume" : "Pause";
+}
+
+document.getElementById("btnPause").onclick = pauseGame;
+
+// ----------------------
+// LEVEL SYSTEM
+// ----------------------
+function updateLevel() {
+  let newLevel = Math.floor(score / 10) + 1;
+
+  if (newLevel !== level) {
+    level = newLevel;
+    gameSpeed = 1 + newLevel * 0.3; // makin laju
+    document.getElementById("level").innerText = level;
+  }
+}
+
+// ----------------------
+// CREATE BALLOON
+// ----------------------
+const colors = ["#ff4d4d", "#4dabff", "#ffdd57", "#70db70", "#cc66ff", "#ff884d"];
+
+function createBalloon() {
+  if (isPaused) return;
+
+  const balloon = document.createElement("div");
+  balloon.classList.add("balloon");
+
+  const randomType = Math.random();
+
+  if (randomType < 0.1) {
+    balloon.classList.add("bomb"); // 10% bomb
+  } else if (randomType < 0.2) {
+    balloon.classList.add("gold"); // 10% golden
+  } else {
+    balloon.style.background = colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  // RANDOM POSITION
+  balloon.style.left = Math.random() * (window.innerWidth - 80) + "px";
+  balloon.style.bottom = "-150px";
+
+  document.body.appendChild(balloon);
+
+  // MOVE UP
+  let speed = gameSpeed + Math.random() * 1.5;
+
+  const move = setInterval(() => {
+    if (isPaused) return;
+
+    let bottom = parseInt(balloon.style.bottom);
+    balloon.style.bottom = bottom + speed + "px";
+
+    if (bottom > window.innerHeight + 100) {
+      balloon.remove();
+      clearInterval(move);
+    }
+  }, 10);
+
+  // CLICK EVENT
+  balloon.addEventListener("click", () => {
+    if (balloon.classList.contains("bomb")) {
+      score -= 5;
+      if (score < 0) score = 0;
+      bombSound.currentTime = 0;
+      bombSound.play();
+    } 
+    else if (balloon.classList.contains("gold")) {
+      score += 5;
+      bonusSound.currentTime = 0;
+      bonusSound.play();
+    }
+    else {
+      score++;
+      popSound.currentTime = 0;
+      popSound.play();
     }
 
-    function spawnBalloon() {
-      const x = Math.random() * canvas.width;
-      const radius = 30 + Math.random() * 20;
-      balloons.push({ x, y: canvas.height + radius, radius, color: randomColor(), speed: 1 + Math.random() * 2 });
-    }
+    document.getElementById("score").innerText = score;
+    updateLevel();
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    balloon.style.transform = "scale(1.4)";
+    balloon.style.opacity = "0";
 
-      balloons.forEach((b, i) => {
-        b.y -= b.speed;
+    setTimeout(() => balloon.remove(), 100);
 
-        ctx.beginPath();
-        ctx.fillStyle = b.color;
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fill();
+  });
+}
 
-        if (b.y < -50) balloons.splice(i, 1);
-      });
+// LOOP
+setInterval(createBalloon, 600);
 
-      requestAnimationFrame(draw);
-    }
+// ----------------------
+// END GAME
+// ----------------------
+function endGame() {
+  clearInterval(timerInterval);
+  isPaused = true;
 
-    function tapHandler(e) {
-      const touchX = e.clientX || e.touches[0].clientX;
-      const touchY = e.clientY || e.touches[0].clientY;
+  // SAVE HIGHSCORE
+  let best = localStorage.getItem("balloonHighscore") || 0;
+  if (score > best) {
+    localStorage.setItem("balloonHighscore", score);
+    alert("Tahniah Bro! Highscore Baru: " + score);
+  } else {
+    alert("Game Over! Score: " + score + "\nHighscore: " + best);
+  }
+}
 
-      balloons.forEach((b, i) => {
-        const dist = Math.hypot(b.x - touchX, b.y - touchY);
-        if (dist < b.radius) {
-          popSound.currentTime = 0;
-          popSound.play();
-          balloons.splice(i, 1);
-          score++;
-          scoreEl.textContent = 'Score: ' + score;
-        }
-      });
-    }
+document.getElementById("btnRestart").onclick = () => location.reload();
 
-    window.addEventListener('click', tapHandler);
-    window.addEventListener('touchstart', tapHandler);
+</script>
 
-    setInterval(spawnBalloon, 700);
-    draw();
-
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-  </script>
 </body>
 </html>
