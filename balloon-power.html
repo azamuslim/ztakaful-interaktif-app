@@ -1,158 +1,103 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Balloon Pop Game</title>
-
   <style>
     body {
       margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #74b9ff, #0984e3);
       overflow: hidden;
-      text-align: center;
-      color: white;
+      background: #f0f8ff;
+      touch-action: manipulation;
+      font-family: sans-serif;
     }
-
-    h1 {
-      margin: 10px;
-      font-size: 26px;
-    }
-
     #score {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-
-    #gameArea {
-      position: relative;
-      width: 100%;
-      height: 80vh;
-      overflow: hidden;
-    }
-
-    .balloon {
       position: absolute;
-      width: 70px;
-      height: 90px;
-      background: radial-gradient(circle at 30% 30%, white, red);
-      border-radius: 50% 50% 50% 50%;
-      cursor: pointer;
-      animation: floatUp linear infinite;
-    }
-
-    .balloon::after {
-      content: '';
-      position: absolute;
-      width: 2px;
-      height: 40px;
-      background: white;
-      bottom: -40px;
-      left: 50%;
-    }
-
-    @keyframes floatUp {
-      from {
-        transform: translateY(100vh);
-      }
-      to {
-        transform: translateY(-150px);
-      }
-    }
-
-    .controls {
-      margin-top: 10px;
-    }
-
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      border: none;
-      border-radius: 8px;
-      background: white;
-      font-size: 16px;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
       font-weight: bold;
-      cursor: pointer;
+      background: rgba(255,255,255,0.7);
+      padding: 8px 14px;
+      border-radius: 8px;
     }
-
-    button:hover {
-      background: #ffeaa7;
+    canvas {
+      display: block;
     }
   </style>
 </head>
 <body>
-
-  <h1>🎈 Balloon Pop Game</h1>
   <div id="score">Score: 0</div>
-
-  <div id="gameArea"></div>
-
-  <div class="controls">
-    <button onclick="restartGame()">🔄 Restart</button>
-    <button onclick="goHome()">🏠 Home</button>
-  </div>
-
-  <!-- SOUND -->
-  <audio id="popSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+  <canvas id="gameCanvas"></canvas>
 
   <script>
-    const gameArea = document.getElementById("gameArea");
-    const scoreText = document.getElementById("score");
-    const popSound = document.getElementById("popSound");
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
 
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let balloons = [];
     let score = 0;
-    let gameInterval;
 
-    function createBalloon() {
-      const balloon = document.createElement("div");
-      balloon.classList.add("balloon");
+    const popSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-fast-small-sweep-transition-166.wav');
 
-      const leftPosition = Math.random() * (window.innerWidth - 80);
-      balloon.style.left = leftPosition + "px";
+    function randomColor() {
+      const colors = ['#ff6384','#36a2eb','#ffce56','#4bc0c0','#9966ff','#ff9f40'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
 
-      const speed = Math.random() * 5 + 5;
-      balloon.style.animationDuration = speed + "s";
+    function spawnBalloon() {
+      const x = Math.random() * canvas.width;
+      const radius = 30 + Math.random() * 20;
+      balloons.push({ x, y: canvas.height + radius, radius, color: randomColor(), speed: 1 + Math.random() * 2 });
+    }
 
-      gameArea.appendChild(balloon);
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      balloon.addEventListener("click", () => {
-        popSound.currentTime = 0;
-        popSound.play();
+      balloons.forEach((b, i) => {
+        b.y -= b.speed;
 
-        score++;
-        scoreText.innerText = "Score: " + score;
+        ctx.beginPath();
+        ctx.fillStyle = b.color;
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.fill();
 
-        balloon.remove();
+        if (b.y < -50) balloons.splice(i, 1);
       });
 
-      setTimeout(() => {
-        if (balloon.parentNode) {
-          balloon.remove();
+      requestAnimationFrame(draw);
+    }
+
+    function tapHandler(e) {
+      const touchX = e.clientX || e.touches[0].clientX;
+      const touchY = e.clientY || e.touches[0].clientY;
+
+      balloons.forEach((b, i) => {
+        const dist = Math.hypot(b.x - touchX, b.y - touchY);
+        if (dist < b.radius) {
+          popSound.currentTime = 0;
+          popSound.play();
+          balloons.splice(i, 1);
+          score++;
+          scoreEl.textContent = 'Score: ' + score;
         }
-      }, speed * 1000);
+      });
     }
 
-    function startGame() {
-      gameInterval = setInterval(createBalloon, 800);
-    }
+    window.addEventListener('click', tapHandler);
+    window.addEventListener('touchstart', tapHandler);
 
-    function restartGame() {
-      score = 0;
-      scoreText.innerText = "Score: 0";
+    setInterval(spawnBalloon, 700);
+    draw();
 
-      gameArea.innerHTML = "";
-      clearInterval(gameInterval);
-      startGame();
-    }
-
-    function goHome() {
-      window.location.href = "index.html";
-    }
-
-    // Start game on load
-    startGame();
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
   </script>
-
 </body>
 </html>
