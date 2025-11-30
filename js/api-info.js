@@ -4,7 +4,7 @@
 // ===============================
 
 // URL Cloudflare Worker Bro
-const WORKER_URL = "https://green-dust-cb98.azamuslim.workers.dev/solat?zone=${JAKIM_ZONE}`,
+const WORKER_URL = "https://green-dust-cb98.azamuslim.workers.dev/solat?zone=${JAKIM_ZONE}" ,
 
 // -------------------------------
 // 1) FETCH WAKTU SOLAT
