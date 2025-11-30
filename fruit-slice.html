@@ -3,192 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fruit Slice Power</title>
+<title>Fruit Slice Game</title>
 
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #001f3f;
-    font-family: Arial;
-    touch-action: none;
-    user-select: none;
-  }
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #111;
+        font-family: Arial;
+        touch-action: none;
+    }
 
-  #gameCanvas {
-    display: block;
-  }
+    canvas {
+        display: block;
+    }
 
-  .top-buttons {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    display: flex;
-    gap: 10px;
-    z-index: 10;
-  }
+    .top-buttons {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 10;
+    }
 
-  button {
-    padding: 10px 16px;
-    border: none;
-    background: #ffffff;
-    color: #003366;
-    font-weight: bold;
-    border-radius: 10px;
-  }
+    .btn {
+        background: #fff;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        font-size: 16px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
 
-  #score {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    color: white;
-    font-size: 22px;
-    font-weight: bold;
-  }
+    .btn:hover {
+        opacity: 0.8;
+    }
+
+    #scoreBox {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        color: #fff;
+        font-size: 20px;
+        font-weight: bold;
+    }
 </style>
 </head>
-
 <body>
+
 <div class="top-buttons">
-  <button onclick="location.href='index.html'">Home</button>
-  <button onclick="restartGame()">Restart</button>
+    <button class="btn" onclick="goHome()">Home</button>
+    <button class="btn" onclick="restartGame()">Restart</button>
 </div>
 
-<div id="score">Score: 0</div>
-
+<div id="scoreBox">Score: 0</div>
 <canvas id="gameCanvas"></canvas>
 
-<audio id="sliceSound" src="https://cdn.pixabay.com/audio/2021/09/27/audio_f0adf8261b.mp3"></audio>
-
 <script>
+/* -------------------
+   CANVAS SETUP
+------------------- */
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let fruits = [];
-let score = 0;
-let slicing = false;
-
+/* -------------------
+   LOAD FRUIT IMAGES
+------------------- */
 const fruitImages = {
-  apple: "images/fruits/apple.png",
-  apple_half1: "images/fruits/apple_half1.png",
-  apple_half2: "images/fruits/apple_half2.png",
-
-  orange: "images/fruits/orange.png",
-  orange_half1: "images/fruits/orange_half1.png",
-  orange_half2: "images/fruits/orange_half2.png",
-
-  kiwi: "images/fruits/kiwi.png",
-  kiwi_half1: "images/fruits/kiwi_half1.png",
-  kiwi_half2: "images/fruits/kiwi_half2.png",
-
-  banana: "images/fruits/banana.png",
-  banana_half1: "images/fruits/banana_half1.png",
-  banana_half2: "images/fruits/banana_half2.png",
-
-  watermelon: "images/fruits/watermelon.png",
-  watermelon_half1: "images/fruits/watermelon_half1.png",
-  watermelon_half2: "images/fruits/watermelon_half2.png"
+    apple: "images/apple.png",
+    orange: "images/orange.png",
+    banana: "images/banana.png",
+    watermelon: "images/watermelon.png"
 };
 
+function loadImage(src) {
+    const img = new Image();
+    img.src = src;
+    return img;
+}
+
+const loadedFruits = {
+    apple: loadImage(fruitImages.apple),
+    orange: loadImage(fruitImages.orange),
+    banana: loadImage(fruitImages.banana),
+    watermelon: loadImage(fruitImages.watermelon)
+};
+
+/* -------------------
+   SLICE SOUND
+------------------- */
+const sliceSound = new Audio("sounds/slice.mp3");
+
+/* -------------------
+   FRUIT OBJECT
+------------------- */
+let fruits = [];
+let score = 0;
+
 function randomFruit() {
-  const list = ["apple", "orange", "kiwi", "banana", "watermelon"];
-  return list[Math.floor(Math.random() * list.length)];
+    const keys = Object.keys(loadedFruits);
+    const pick = keys[Math.floor(Math.random() * keys.length)];
+
+    return {
+        type: pick,
+        img: loadedFruits[pick],
+        x: Math.random() * canvas.width,
+        y: canvas.height + 50,
+        size: 80,
+        speedY: -(10 + Math.random() * 5),
+        gravity: 0.3,
+        sliced: false,
+    };
 }
 
 function spawnFruit() {
-  const type = randomFruit();
-  fruits.push({
-    x: Math.random() * canvas.width,
-    y: canvas.height + 50,
-    size: 80,
-    speedY: - (10 + Math.random() * 10),
-    speedX: (Math.random() * 6 - 3),
-    type,
-    sliced: false
-  });
+    fruits.push(randomFruit());
 }
 
-setInterval(spawnFruit, 1200);
+setInterval(spawnFruit, 1000);
 
+/* -------------------
+   DRAW FRUIT
+------------------- */
 function drawFruit(f) {
-  const img = new Image();
-  img.src = fruitImages[f.type];
-  ctx.drawImage(img, f.x, f.y, f.size, f.size);
-}
-
-function drawHalf(f, half) {
-  const img = new Image();
-  img.src = fruitImages[f.type + "_" + half];
-  ctx.drawImage(img, f.x, f.y, f.size, f.size);
-}
-
-function update() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  fruits.forEach((f, i) => {
     if (!f.sliced) {
-      drawFruit(f);
+        ctx.drawImage(f.img, f.x, f.y, f.size, f.size);
     } else {
-      drawHalf(f, "half1");
-      drawHalf(f, "half2");
-    }
+        // Draw slice halves
+        ctx.save();
 
-    f.x += f.speedX;
+        // LEFT HALF
+        ctx.translate(f.x + f.size / 2, f.y + f.size / 2);
+        ctx.rotate(-0.4);
+        ctx.drawImage(f.img, -f.size/2 - 20, -f.size/2, f.size/2, f.size);
+
+        // RIGHT HALF
+        ctx.rotate(0.8);
+        ctx.drawImage(f.img, 0, -f.size/2, f.size/2, f.size);
+
+        ctx.restore();
+    }
+}
+
+/* -------------------
+   UPDATE FRUIT MOVEMENT
+------------------- */
+function updateFruit(f) {
     f.y += f.speedY;
-    f.speedY += 0.5;
+    f.speedY += f.gravity;
 
     if (f.y > canvas.height + 100) {
-      fruits.splice(i, 1);
+        fruits.splice(fruits.indexOf(f), 1);
     }
-  });
-
-  requestAnimationFrame(update);
 }
 
-canvas.addEventListener("touchstart", startSlice);
-canvas.addEventListener("touchmove", sliceMove);
-canvas.addEventListener("mousedown", startSlice);
-canvas.addEventListener("mousemove", sliceMove);
+/* -------------------
+   SLICE DETECTION
+------------------- */
+let lastX = null;
+let lastY = null;
 
-function startSlice(e) {
-  slicing = true;
-  sliceAt(e);
+function checkSlice(x, y) {
+    fruits.forEach(f => {
+        if (!f.sliced &&
+            x > f.x && x < f.x + f.size &&
+            y > f.y && y < f.y + f.size) {
+
+            sliceFruit(f);
+        }
+    });
 }
 
-function sliceMove(e) {
-  if (slicing) sliceAt(e);
+function sliceFruit(f) {
+    f.sliced = true;
+
+    score += 1;
+    document.getElementById("scoreBox").textContent = "Score: " + score;
+
+    sliceSound.currentTime = 0;
+    sliceSound.play();
+
+    // Remove sliced fruit after animation
+    setTimeout(() => {
+        fruits.splice(fruits.indexOf(f), 1);
+    }, 500);
 }
 
-function sliceAt(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+/* -------------------
+   MOUSE & TOUCH EVENTS
+------------------- */
+function handleMove(e) {
+    let x, y;
 
-  fruits.forEach(f => {
-    if (!f.sliced && x >= f.x && x <= f.x + f.size && y >= f.y && y <= f.y + f.size) {
-      f.sliced = true;
-
-      score++;
-      document.getElementById("score").innerText = "Score: " + score;
-
-      document.getElementById("sliceSound").play();
-
-      f.speedX = -5;
-      f.speedY = -5;
+    if (e.touches) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+    } else {
+        x = e.clientX;
+        y = e.clientY;
     }
-  });
+
+    if (lastX !== null) {
+        checkSlice(x, y);
+    }
+
+    lastX = x;
+    lastY = y;
 }
 
-canvas.addEventListener("mouseup", () => slicing = false);
-canvas.addEventListener("touchend", () => slicing = false);
+canvas.addEventListener("mousemove", handleMove);
+canvas.addEventListener("touchmove", handleMove);
 
+/* -------------------
+   GAME LOOP
+------------------- */
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    fruits.forEach(f => {
+        updateFruit(f);
+        drawFruit(f);
+    });
+
+    requestAnimationFrame(gameLoop);
+}
+gameLoop();
+
+/* -------------------
+   BUTTON FUNCTIONS
+------------------- */
 function restartGame() {
-  location.reload();
+    fruits = [];
+    score = 0;
+    document.getElementById("scoreBox").textContent = "Score: 0";
 }
 
-update();
+function goHome() {
+    window.location.href = "index.html";
+}
+
 </script>
+
 </body>
 </html>
