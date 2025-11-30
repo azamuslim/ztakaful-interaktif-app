@@ -1,70 +1,79 @@
-document.addEventListener("DOMContentLoaded", () => {
+// ===============================
+//  API INFO (SOLAT + VISITOR)
+//  Guna Cloudflare Worker Proxy
+// ===============================
 
-  const solatBox = document.getElementById("solatBox");
-  const visitCount = document.getElementById("visitCount");
-  const stateSelect = document.getElementById("stateSelect");
+// URL Cloudflare Worker Bro
+const WORKER_URL = "https://green-dust-cb98.azamuslim.workers.dev/";
 
-  let JAKIM_ZONE = localStorage.getItem("zone") || "WLY01";
-
-  if (stateSelect) {
-    stateSelect.value = JAKIM_ZONE;
-
-    stateSelect.addEventListener("change", () => {
-      JAKIM_ZONE = stateSelect.value;
-      localStorage.setItem("zone", JAKIM_ZONE);
-      loadSolat();
-    });
-  }
-
-  loadSolat();
-  updateVisitor();
-
-  // =======================
-  // WAKTU SOLAT (Cloudflare Worker)
-  // =======================
-  async function loadSolat() {
-    solatBox.innerText = "🕌 Loading waktu solat...";
+// -------------------------------
+// 1) FETCH WAKTU SOLAT
+// -------------------------------
+async function loadWaktuSolat(kawasan = "WP KUALA LUMPUR") {
+    const solatBox = document.getElementById("solatBox");
+    solatBox.innerHTML = `<p>Sedang memuatkan waktu solat...</p>`;
 
     try {
-      const response = await fetch(
-        `https://green-dust-cb98.azamuslim.workers.dev/solat?zone=${JAKIM_ZONE}`,
-        { cache: "no-store" }
-      );
+        const response = await fetch(`${WORKER_URL}?kawasan=${encodeURIComponent(kawasan)}`);
+        const data = await response.json();
 
-      const data = await response.json();
+        if (data.error) {
+            solatBox.innerHTML = `<p>Error: ${data.error}</p>`;
+            return;
+        }
 
-      if (!data.prayerTime || !data.prayerTime[0]) {
-        solatBox.innerText = "❌ Data solat tiada";
-        return;
-      }
+        const w = data.prayer_times;
 
-      const w = data.prayerTime[0];
-
-      solatBox.innerHTML = `
-        🕌 Subuh: ${w.fajr} |
-        Zohor: ${w.dhuhr} |
-        Asar: ${w.asr} |
-        Maghrib: ${w.maghrib} |
-        Isyak: ${w.isha}
-      `;
-
+        solatBox.innerHTML = `
+            <h3>Waktu Solat - ${kawasan}</h3>
+            <ul>
+                <li>Subuh: ${w.Subuh}</li>
+                <li>Syuruk: ${w.Syuruk}</li>
+                <li>Zohor: ${w.Zohor}</li>
+                <li>Asar: ${w.Asar}</li>
+                <li>Maghrib: ${w.Maghrib}</li>
+                <li>Isyak: ${w.Isyak}</li>
+            </ul>
+        `;
     } catch (err) {
-      solatBox.innerText = "❌ API Solat Problem (Worker)";
-      console.error("Solat Error:", err);
+        solatBox.innerHTML = `<p>Gagal memuatkan waktu solat.</p>`;
+        console.error("Waktu Solat Error:", err);
     }
-  }
+}
 
-  // =======================
-  // VISITOR COUNTER
-  // =======================
-  function updateVisitor() {
-    let count = localStorage.getItem("visitCount") || 0;
-    count++;
-    localStorage.setItem("visitCount", count);
-    visitCount.innerText = count;
-  }
+// -------------------------------
+// 2) VISITOR COUNTER
+// -------------------------------
+function loadVisitorCounter() {
+    const visitBox = document.getElementById("visitCount");
 
-  // Auto refresh solat
-  setInterval(loadSolat, 600000);
+    fetch(`${WORKER_URL}?counter=true`)
+        .then(res => res.json())
+        .then(data => {
+            visitBox.innerHTML = `<p>Jumlah Pelawat: ${data.visits}</p>`;
+        })
+        .catch(err => {
+            visitBox.innerHTML = `<p>Gagal memuat pelawat</p>`;
+            console.error("Visitor Error:", err);
+        });
+}
 
+// -------------------------------
+// AUTO RUN BILA PAGE LOAD
+// -------------------------------
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Default Kuala Lumpur / Putrajaya
+    loadWaktuSolat("WP KUALA LUMPUR");
+
+    // Load visitor
+    loadVisitorCounter();
+
+    // State dropdown (kalau ada)
+    const stateSel = document.getElementById("stateSelect");
+    if (stateSel) {
+        stateSel.addEventListener("change", function () {
+            loadWaktuSolat(stateSel.value);
+        });
+    }
 });
