@@ -1,79 +1,77 @@
-// ===============================
-//  API INFO (SOLAT + VISITOR)
-//  Guna Cloudflare Worker Proxy
-// ===============================
+const WORKER_URL = "https://green-dust-cb98.azamuslim.workers.dev/";
 
-// URL Cloudflare Worker Bro
-const WORKER_URL = "https://green-dust-cb98.azamuslim.workers.dev/solat?zone=${JAKIM_ZONE}" ,
-
-// -------------------------------
-// 1) FETCH WAKTU SOLAT
-// -------------------------------
-async function loadWaktuSolat(kawasan = "WP KUALA LUMPUR") {
+// =========================
+// 1) WAKTU SOLAT
+// =========================
+async function loadWaktuSolat(zone = "WLY01") {
     const solatBox = document.getElementById("solatBox");
-    solatBox.innerHTML = `<p>Sedang memuatkan waktu solat...</p>`;
+    solatBox.innerHTML = "🕌 Memuatkan waktu solat...";
 
     try {
-        const response = await fetch(`${WORKER_URL}?kawasan=${encodeURIComponent(kawasan)}`);
+        const response = await fetch(`${WORKER_URL}?kawasan=${zone}`);
         const data = await response.json();
 
         if (data.error) {
-            solatBox.innerHTML = `<p>Error: ${data.error}</p>`;
+            solatBox.innerHTML = "❌ Gagal memuatkan waktu solat";
             return;
         }
 
         const w = data.prayer_times;
 
         solatBox.innerHTML = `
-            <h3>Waktu Solat - ${kawasan}</h3>
-            <ul>
-                <li>Subuh: ${w.Subuh}</li>
-                <li>Syuruk: ${w.Syuruk}</li>
-                <li>Zohor: ${w.Zohor}</li>
-                <li>Asar: ${w.Asar}</li>
-                <li>Maghrib: ${w.Maghrib}</li>
-                <li>Isyak: ${w.Isyak}</li>
-            </ul>
+            <strong>Waktu Solat</strong><br>
+            Subuh: ${w.fajr}<br>
+            Syuruk: ${w.syuruk}<br>
+            Zohor: ${w.dhuhr}<br>
+            Asar: ${w.asr}<br>
+            Maghrib: ${w.maghrib}<br>
+            Isyak: ${w.isha}
         `;
-    } catch (err) {
-        solatBox.innerHTML = `<p>Gagal memuatkan waktu solat.</p>`;
-        console.error("Waktu Solat Error:", err);
+    } catch (e) {
+        solatBox.innerHTML = "❌ Waktu solat gagal dimuat";
     }
 }
 
-// -------------------------------
+// =========================
 // 2) VISITOR COUNTER
-// -------------------------------
-function loadVisitorCounter() {
-    const visitBox = document.getElementById("visitCount");
+// =========================
+function loadVisitors() {
+    const el = document.getElementById("visitCount");
 
     fetch(`${WORKER_URL}?counter=true`)
-        .then(res => res.json())
-        .then(data => {
-            visitBox.innerHTML = `<p>Jumlah Pelawat: ${data.visits}</p>`;
+        .then(r => r.json())
+        .then(d => {
+            el.innerHTML = d.visits;
         })
-        .catch(err => {
-            visitBox.innerHTML = `<p>Gagal memuat pelawat</p>`;
-            console.error("Visitor Error:", err);
+        .catch(() => {
+            el.innerHTML = "Err";
         });
 }
 
-// -------------------------------
-// AUTO RUN BILA PAGE LOAD
-// -------------------------------
-document.addEventListener("DOMContentLoaded", function () {
+// =========================
+// 3) ON PAGE LOAD
+// =========================
+document.addEventListener("DOMContentLoaded", () => {
 
-    // Default Kuala Lumpur / Putrajaya
-    loadWaktuSolat("WP KUALA LUMPUR");
+    // Default KL
+    loadWaktuSolat("WLY01");
 
-    // Load visitor
-    loadVisitorCounter();
+    // Visitor
+    loadVisitors();
 
-    // State dropdown (kalau ada)
+    // Dropdown pilih negeri
     const stateSel = document.getElementById("stateSelect");
     if (stateSel) {
-        stateSel.addEventListener("change", function () {
+        stateSel.addEventListener("change", () => {
             loadWaktuSolat(stateSel.value);
+            localStorage.setItem("chosenState", stateSel.value);
         });
+
+        // load saved
+        const saved = localStorage.getItem("chosenState");
+        if (saved) {
+            stateSel.value = saved;
+            loadWaktuSolat(saved);
+        }
     }
 });
