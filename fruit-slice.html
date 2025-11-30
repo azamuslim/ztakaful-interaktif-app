@@ -2,254 +2,193 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fruit Slice Power+</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fruit Slice Power</title>
 
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #111;
-    font-family: Arial, sans-serif;
-    touch-action: none;
-  }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #001f3f;
+    font-family: Arial;
+    touch-action: none;
+    user-select: none;
+  }
 
-  #topUI {
-    position: fixed;
-    top: 10px;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 20px;
-    z-index: 50;
-  }
+  #gameCanvas {
+    display: block;
+  }
 
-  .ui-box {
-    background: #fff;
-    padding: 8px 16px;
-    border-radius: 14px;
-    font-size: 17px;
-    font-weight: bold;
-  }
+  .top-buttons {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+  }
 
-  button {
-    margin-left: 8px;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 14px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-  }
+  button {
+    padding: 10px 16px;
+    border: none;
+    background: #ffffff;
+    color: #003366;
+    font-weight: bold;
+    border-radius: 10px;
+  }
 
-  #btnRestart { background: #28a745; color: white; }
-  #btnHome { background: #333; color: white; }
+  #score {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+  }
 </style>
 </head>
 
 <body>
-
-<div id="topUI">
-  <div class="ui-box">Score: <span id="score">0</span></div>
-
-  <div>
-    <button id="btnRestart" onclick="restartGame()">Restart</button>
-    <button id="btnHome" onclick="location.href='index.html'">Home</button>
-  </div>
+<div class="top-buttons">
+  <button onclick="location.href='index.html'">Home</button>
+  <button onclick="restartGame()">Restart</button>
 </div>
+
+<div id="score">Score: 0</div>
 
 <canvas id="gameCanvas"></canvas>
 
+<audio id="sliceSound" src="https://cdn.pixabay.com/audio/2021/09/27/audio_f0adf8261b.mp3"></audio>
+
 <script>
-// =========================
-// CANVAS SETUP
-// =========================
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-window.addEventListener("resize", () => {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-});
-
-// =========================
-// SOUNDS
-// =========================
-const sliceSound = new Audio("sounds/slice.mp3");
-const bombSound = new Audio("sounds/bomb.mp3");
-
-// =========================
-// GAME VARIABLES
-// =========================
 let fruits = [];
 let score = 0;
-let isGameOver = false;
-let lastSpawn = 0;
+let slicing = false;
 
-// =========================
-// FRUIT OBJECT
-// =========================
-class Fruit {
-  constructor(type) {
-    this.type = type;
+const fruitImages = {
+  apple: "https://i.imgur.com/yqXnd0y.png",
+  apple_half1: "https://i.imgur.com/mdSqNce.png",
+  apple_half2: "https://i.imgur.com/WKwxLBm.png",
 
-    this.x = Math.random() * canvas.width;
-    this.y = canvas.height + 40;
+  orange: "https://i.imgur.com/68Hml4C.png",
+  orange_half1: "https://i.imgur.com/EZi0aFq.png",
+  orange_half2: "https://i.imgur.com/xZx1Tlm.png",
 
-    this.radius = 40;
-    this.speedX = (Math.random() - 0.5) * 6;
-    this.speedY = - (15 + Math.random() * 6);
-    this.gravity = 0.4;
+  kiwi: "https://i.imgur.com/eR2B8vU.png",
+  kiwi_half1: "https://i.imgur.com/3Zf40lN.png",
+  kiwi_half2: "https://i.imgur.com/5AhShFt.png",
 
-    this.sliced = false;
-  }
+  banana: "https://i.imgur.com/7G6j47X.png",
+  banana_half1: "https://i.imgur.com/PCkS9Ea.png",
+  banana_half2: "https://i.imgur.com/UqL31CL.png",
 
-  draw() {
-    if (this.type === "bomb") {
-      ctx.fillStyle = "black";
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, 40, 0, Math.PI * 2);
-      ctx.fill();
+  watermelon: "https://i.imgur.com/2Qh5RT5.png",
+  watermelon_half1: "https://i.imgur.com/wjA0S7U.png",
+  watermelon_half2: "https://i.imgur.com/OzDkVjw.png"
+};
 
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 4;
-      ctx.stroke();
-      return;
-    }
-
-    ctx.fillStyle = "#ff4d4d";
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, 40, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(this.x - 10, this.y - 20, 20, 5);
-  }
-
-  update() {
-    this.x += this.speedX;
-    this.y += this.speedY;
-    this.speedY += this.gravity;
-  }
+function randomFruit() {
+  const list = ["apple", "orange", "kiwi", "banana", "watermelon"];
+  return list[Math.floor(Math.random() * list.length)];
 }
 
-// =========================
-// SPAWN FRUIT
-// =========================
 function spawnFruit() {
-  let type = Math.random() < 0.15 ? "bomb" : "fruit";
-  fruits.push(new Fruit(type));
+  const type = randomFruit();
+  fruits.push({
+    x: Math.random() * canvas.width,
+    y: canvas.height + 50,
+    size: 80,
+    speedY: - (10 + Math.random() * 10),
+    speedX: (Math.random() * 6 - 3),
+    type,
+    sliced: false
+  });
 }
 
-// =========================
-// SLICE DETECTION
-// =========================
-let lastX = null;
-let lastY = null;
+setInterval(spawnFruit, 1200);
 
-function sliceCheck(x, y) {
-  fruits.forEach(f => {
-    const dist = Math.hypot(f.x - x, f.y - y);
-
-    if (dist < f.radius && !f.sliced) {
-      f.sliced = true;
-
-      if (f.type === "bomb") {
-        bombSound.currentTime = 0;
-        bombSound.play();
-        gameOver();
-      } else {
-        score++;
-        document.getElementById("score").innerText = score;
-
-        sliceSound.currentTime = 0;
-        sliceSound.play();
-
-        // Slice effect
-        ctx.strokeStyle = "yellow";
-        ctx.lineWidth = 8;
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-      }
-    }
-  });
+function drawFruit(f) {
+  const img = new Image();
+  img.src = fruitImages[f.type];
+  ctx.drawImage(img, f.x, f.y, f.size, f.size);
 }
 
-// =========================
-// TOUCH / MOUSE INPUT
-// =========================
-function handleInput(e) {
-  let x, y;
-
-  if (e.touches) {
-    x = e.touches[0].clientX;
-    y = e.touches[0].clientY;
-  } else {
-    x = e.clientX;
-    y = e.clientY;
-  }
-
-  if (lastX !== null) sliceCheck(x, y);
-
-  lastX = x;
-  lastY = y;
+function drawHalf(f, half) {
+  const img = new Image();
+  img.src = fruitImages[f.type + "_" + half];
+  ctx.drawImage(img, f.x, f.y, f.size, f.size);
 }
 
-window.addEventListener("mousemove", handleInput);
-window.addEventListener("touchmove", handleInput);
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// Reset swipe
-window.addEventListener("mouseup", () => { lastX = lastY = null; });
-window.addEventListener("touchend", () => { lastX = lastY = null; });
+  fruits.forEach((f, i) => {
+    if (!f.sliced) {
+      drawFruit(f);
+    } else {
+      drawHalf(f, "half1");
+      drawHalf(f, "half2");
+    }
 
-// =========================
-// GAME LOOP
-// =========================
-function gameLoop(timestamp) {
-  if (isGameOver) return;
+    f.x += f.speedX;
+    f.y += f.speedY;
+    f.speedY += 0.5;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (f.y > canvas.height + 100) {
+      fruits.splice(i, 1);
+    }
+  });
 
-  // Spawn fruits every 700ms
-  if (timestamp - lastSpawn > 700) {
-    spawnFruit();
-    lastSpawn = timestamp;
-  }
-
-  fruits.forEach((f, index) => {
-    f.update();
-    f.draw();
-
-    if (f.y > canvas.height + 100) {
-      fruits.splice(index, 1);
-    }
-  });
-
-  requestAnimationFrame(gameLoop);
+  requestAnimationFrame(update);
 }
 
-requestAnimationFrame(gameLoop);
+canvas.addEventListener("touchstart", startSlice);
+canvas.addEventListener("touchmove", sliceMove);
+canvas.addEventListener("mousedown", startSlice);
+canvas.addEventListener("mousemove", sliceMove);
 
-// =========================
-// GAME OVER
-// =========================
-function gameOver() {
-  isGameOver = true;
-  alert("💥 BOOM! Kena bomb Bro!\nScore: " + score);
+function startSlice(e) {
+  slicing = true;
+  sliceAt(e);
 }
 
-// =========================
-// RESTART
-// =========================
+function sliceMove(e) {
+  if (slicing) sliceAt(e);
+}
+
+function sliceAt(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+  fruits.forEach(f => {
+    if (!f.sliced && x >= f.x && x <= f.x + f.size && y >= f.y && y <= f.y + f.size) {
+      f.sliced = true;
+
+      score++;
+      document.getElementById("score").innerText = "Score: " + score;
+
+      document.getElementById("sliceSound").play();
+
+      f.speedX = -5;
+      f.speedY = -5;
+    }
+  });
+}
+
+canvas.addEventListener("mouseup", () => slicing = false);
+canvas.addEventListener("touchend", () => slicing = false);
+
 function restartGame() {
-  location.reload();
+  location.reload();
 }
 
+update();
 </script>
-
 </body>
 </html>
