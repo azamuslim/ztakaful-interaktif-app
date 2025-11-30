@@ -100,33 +100,33 @@ async function loadSolat() {
 }
 
 
-  // =========================
-  // WEATHER API
-  // =========================
-  async function loadCuaca() {
-    cuacaBox.innerHTML = "☁️ Loading cuaca...";
+ // =======================
+// CUACA GUNA WORKER TANPA API KEY LEAK
+// =======================
+async function loadCuaca() {
+  cuacaBox.innerText = " Loading cuaca...";
 
-    try {
-      const res = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${CITY},MY&appid=${WEATHER_API_KEY}&units=metric`
-      );
-      const data = await res.json();
+  try {
+    const url = `https://green-dust-cb98.azamuslim.workers.dev/weather?city=${CITY}`;
 
-      if (data.cod !== 200) {
-        cuacaBox.innerHTML = "❌ Cuaca tidak dijumpai";
-        return;
-      }
+    const res = await fetch(url, { cache: "no-store" });
+    const data = await res.json();
 
-      const temp = Math.round(data.main.temp);
-      const desc = data.weather[0].description;
+    if (data.error) {
+      cuacaBox.innerText = " Cuaca error";
+      return;
+    }
 
-      cuacaBox.innerHTML = `☁️ ${CITY} | ${temp}°C | ${desc}`;
+    const temp = Math.round(data.temp);
+    const desc = data.description;
 
-    } catch (e) {
-      cuacaBox.innerHTML = "❌ Gagal ambil cuaca";
-      console.log("Weather error:", e);
-    }
-  }
+    cuacaBox.innerHTML = ` ${CITY} | ${temp}°C | ${desc}`;
+
+  } catch (err) {
+    cuacaBox.innerText = " API Cuaca Problem";
+    console.error("Cuaca Error:", err);
+  }
+}
 
   // =========================
   // VISITOR COUNTER
