@@ -3,248 +3,311 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fruit Slice Game</title>
+<title>Fruit Slice Game (Premium)</title>
 
 <style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        background: #111;
-        font-family: Arial;
-        touch-action: none;
-    }
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #111;
+        font-family: Arial;
+        touch-action: none;
+    }
 
-    canvas {
-        display: block;
-    }
+    canvas {
+        display: block;
+    }
 
-    .top-buttons {
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 10;
-    }
+    .top-buttons {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 10;
+    }
 
-    .btn {
-        background: #fff;
-        padding: 10px 14px;
-        border-radius: 10px;
-        border: none;
-        font-size: 16px;
-        margin-right: 10px;
-        cursor: pointer;
-    }
+    .btn {
+        background: #fff;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        font-size: 16px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
 
-    .btn:hover {
-        opacity: 0.8;
-    }
+    #scoreBox {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        color: #fff;
+        font-size: 20px;
+        font-weight: bold;
+    }
 
-    #scoreBox {
-        position: fixed;
-        top: 15px;
-        right: 15px;
-        color: #fff;
-        font-size: 20px;
-        font-weight: bold;
-    }
+    #highscoreBox {
+        position: fixed;
+        top: 45px;
+        right: 15px;
+        color: #fff;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    #timerBarContainer {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        height: 12px;
+        background: #333;
+        z-index: 20;
+    }
+
+    #timerBar {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #00ff88, #ff0000);
+        transition: width 0.15s;
+    }
 </style>
 </head>
 <body>
 
 <div class="top-buttons">
-    <button class="btn" onclick="goHome()">Home</button>
-    <button class="btn" onclick="restartGame()">Restart</button>
+    <button class="btn" onclick="goHome()">Home</button>
+    <button class="btn" onclick="restartGame()">Restart</button>
 </div>
 
 <div id="scoreBox">Score: 0</div>
+<div id="highscoreBox">Highscore: 0</div>
+
+<div id="timerBarContainer">
+    <div id="timerBar"></div>
+</div>
+
 <canvas id="gameCanvas"></canvas>
 
 <script>
-/* -------------------
-   CANVAS SETUP
-------------------- */
+/* ============================
+    CANVAS SETUP
+============================ */
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-/* -------------------
-   LOAD FRUIT IMAGES
-------------------- */
+/* ============================
+    LOAD IMAGES
+============================ */
 const fruitImages = {
-    apple: "images/apple.png",
-    orange: "images/orange.png",
-    banana: "images/banana.png",
-    watermelon: "images/watermelon.png"
+    apple: "images/apple.png",
+    orange: "images/orange.png",
+    banana: "images/banana.png",
+    watermelon: "images/watermelon.png",
+    bomb: "images/bomb.png"
 };
 
 function loadImage(src) {
-    const img = new Image();
-    img.src = src;
-    return img;
+    const img = new Image();
+    img.src = src;
+    return img;
 }
 
-const loadedFruits = {
-    apple: loadImage(fruitImages.apple),
-    orange: loadImage(fruitImages.orange),
-    banana: loadImage(fruitImages.banana),
-    watermelon: loadImage(fruitImages.watermelon)
-};
+const loaded = {};
+for (let k in fruitImages) loaded[k] = loadImage(fruitImages[k]);
 
-/* -------------------
-   SLICE SOUND
-------------------- */
+/* ============================
+    SOUNDS
+============================ */
 const sliceSound = new Audio("sounds/slice.mp3");
+const bombSound  = new Audio("sounds/explosion.mp3");
 
-/* -------------------
-   FRUIT OBJECT
-------------------- */
+/* ============================
+    GAME VARIABLES
+============================ */
 let fruits = [];
 let score = 0;
+let timeLeft = 180;
+let gameRunning = true;
 
+let highscore = localStorage.getItem("fruitHighscore") || 0;
+document.getElementById("highscoreBox").textContent = "Highscore: " + highscore;
+
+/* ============================
+    FRUIT GENERATOR (WITH PHYSICS)
+============================ */
 function randomFruit() {
-    const keys = Object.keys(loadedFruits);
-    const pick = keys[Math.floor(Math.random() * keys.length)];
+    const types = ["apple", "orange", "banana", "watermelon", "bomb"];
+    const type = types[Math.floor(Math.random() * types.length)];
 
-    return {
-        type: pick,
-        img: loadedFruits[pick],
-        x: Math.random() * canvas.width,
-        y: canvas.height + 50,
-        size: 90,
-        speedY: -(10 + Math.random() * 5),
-        gravity: 0.3,
-        sliced: false,
-    };
+    const speedX = (Math.random() - 0.5) * 10; // left/right movement
+    const rotation = (Math.random() - 0.5) * 0.2;
+
+    return {
+        type,
+        img: loaded[type],
+        x: Math.random() * canvas.width,
+        y: canvas.height + 60,
+        size: 90,
+        speedX,
+        speedY: -(12 + Math.random() * 6),
+        gravity: 0.35,
+        rotate: 0,
+        rotateSpeed: rotation,
+        sliced: false
+    };
 }
 
 function spawnFruit() {
-    fruits.push(randomFruit());
+    if (gameRunning) fruits.push(randomFruit());
 }
 
-setInterval(spawnFruit, 1000);
+setInterval(spawnFruit, 900);
 
-/* -------------------
-   DRAW FRUIT
-------------------- */
+/* ============================
+    DRAW FRUITS
+============================ */
 function drawFruit(f) {
-    if (!f.sliced) {
-        ctx.drawImage(f.img, f.x, f.y, f.size, f.size);
-    } else {
-        // Draw slice halves
-        ctx.save();
+    ctx.save();
+    ctx.translate(f.x + f.size / 2, f.y + f.size / 2);
+    ctx.rotate(f.rotate);
 
-        // LEFT HALF
-        ctx.translate(f.x + f.size / 2, f.y + f.size / 2);
-        ctx.rotate(-0.4);
-        ctx.drawImage(f.img, -f.size/2 - 20, -f.size/2, f.size/2, f.size);
+    if (!f.sliced) {
+        ctx.drawImage(f.img, -f.size/2, -f.size/2, f.size, f.size);
+    } else {
+        ctx.drawImage(f.img, -f.size/2 - 20, -f.size/2, f.size/2, f.size);
+        ctx.drawImage(f.img, 0, -f.size/2, f.size/2, f.size);
+    }
 
-        // RIGHT HALF
-        ctx.rotate(0.8);
-        ctx.drawImage(f.img, 0, -f.size/2, f.size/2, f.size);
-
-        ctx.restore();
-    }
+    ctx.restore();
 }
 
-/* -------------------
-   UPDATE FRUIT MOVEMENT
-------------------- */
+/* ============================
+    UPDATE PHYSICS
+============================ */
 function updateFruit(f) {
-    f.y += f.speedY;
-    f.speedY += f.gravity;
+    f.x += f.speedX;
+    f.y += f.speedY;
+    f.speedY += f.gravity;
+    f.rotate += f.rotateSpeed;
 
-    if (f.y > canvas.height + 100) {
-        fruits.splice(fruits.indexOf(f), 1);
-    }
+    if (f.y > canvas.height + 120) {
+        fruits.splice(fruits.indexOf(f), 1);
+    }
 }
 
-/* -------------------
-   SLICE DETECTION
-------------------- */
+/* ============================
+    SLICE DETECTION
+============================ */
 let lastX = null;
 let lastY = null;
 
 function checkSlice(x, y) {
-    fruits.forEach(f => {
-        if (!f.sliced &&
-            x > f.x && x < f.x + f.size &&
-            y > f.y && y < f.y + f.size) {
+    fruits.forEach(f => {
+        if (!f.sliced &&
+            x > f.x && x < f.x + f.size &&
+            y > f.y && y < f.y + f.size) {
 
-            sliceFruit(f);
-        }
-    });
+            sliceFruit(f);
+        }
+    });
 }
 
 function sliceFruit(f) {
-    f.sliced = true;
+    if (f.type === "bomb") {
+        bombSound.currentTime = 0;
+        bombSound.play();
 
-    score += 1;
-    document.getElementById("scoreBox").textContent = "Score: " + score;
+        gameRunning = false;
+        alert("BOOM! 💣\nGame Over!\nScore: " + score);
+        saveHighscore();
+        return;
+    }
 
-    sliceSound.currentTime = 0;
-    sliceSound.play();
+    sliceSound.currentTime = 0;
+    sliceSound.play();
 
-    // Remove sliced fruit after animation
-    setTimeout(() => {
-        fruits.splice(fruits.indexOf(f), 1);
-    }, 500);
+    f.sliced = true;
+
+    score++;
+    document.getElementById("scoreBox").textContent = "Score: " + score;
+
+    setTimeout(() => {
+        fruits.splice(fruits.indexOf(f), 1);
+    }, 350);
 }
 
-/* -------------------
-   MOUSE & TOUCH EVENTS
-------------------- */
-function handleMove(e) {
-    let x, y;
+canvas.addEventListener("mousemove", e => checkSlice(e.clientX, e.clientY));
+canvas.addEventListener("touchmove", e =>
+    checkSlice(e.touches[0].clientX, e.touches[0].clientY)
+);
 
-    if (e.touches) {
-        x = e.touches[0].clientX;
-        y = e.touches[0].clientY;
-    } else {
-        x = e.clientX;
-        y = e.clientY;
-    }
-
-    if (lastX !== null) {
-        checkSlice(x, y);
-    }
-
-    lastX = x;
-    lastY = y;
-}
-
-canvas.addEventListener("mousemove", handleMove);
-canvas.addEventListener("touchmove", handleMove);
-
-/* -------------------
-   GAME LOOP
-------------------- */
+/* ============================
+    GAME LOOP
+============================ */
 function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    fruits.forEach(f => {
-        updateFruit(f);
-        drawFruit(f);
-    });
+    fruits.forEach(f => {
+        if (gameRunning) updateFruit(f);
+        drawFruit(f);
+    });
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(gameLoop);
 }
 gameLoop();
 
-/* -------------------
-   BUTTON FUNCTIONS
-------------------- */
+/* ============================
+    TIMER HANDLING
+============================ */
+function updateTimer() {
+    if (!gameRunning) return;
+
+    timeLeft--;
+
+    const percent = (timeLeft / 180) * 100;
+    document.getElementById("timerBar").style.width = percent + "%";
+
+    if (timeLeft <= 0) {
+        endGame();
+    }
+}
+setInterval(updateTimer, 1000);
+
+/* ============================
+    END GAME + SAVE HIGHSCORE
+============================ */
+function saveHighscore() {
+    if (score > highscore) {
+        highscore = score;
+        localStorage.setItem("fruitHighscore", highscore);
+    }
+    document.getElementById("highscoreBox").textContent = "Highscore: " + highscore;
+}
+
+function endGame() {
+    gameRunning = false;
+    alert("Time's up!\nScore: " + score);
+    saveHighscore();
+}
+
+/* ============================
+    BUTTONS
+============================ */
 function restartGame() {
-    fruits = [];
-    score = 0;
-    document.getElementById("scoreBox").textContent = "Score: 0";
+    fruits = [];
+    score = 0;
+    timeLeft = 180;
+    gameRunning = true;
+
+    document.getElementById("scoreBox").textContent = "Score: 0";
+    document.getElementById("timerBar").style.width = "100%";
 }
 
 function goHome() {
-    window.location.href = "index.html";
+    window.location.href = "index.html";
 }
-
 </script>
 
 </body>
