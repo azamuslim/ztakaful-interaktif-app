@@ -1,85 +1,105 @@
-// ======================================
-// CONFIG
-// ======================================
-const WORKER_URL = "https://green-dust-cb98.azamuslim.workers.dev/";
-const COUNTER_NAMESPACE = "azamuslim_ztakaful_app_visitors"; 
-// (nama unik — bro boleh tukar kalau nak)
+// =================================================
+// PLAN A: API WAKTU SOLAT (tanpa Worker, sangat stabil)
+// =================================================
 
-// ======================================
-// 1) WAKTU SOLAT via Cloudflare Worker
-// ======================================
+// Mapping zone -> code (ikut API baru)
+const ZONE_API_MAP = {
+    "WLY01": "wlp",   // Kuala Lumpur / Putrajaya
+    "JHR01": "jhr",   // Johor
+    "KDH01": "kdh",   // Kedah
+    "KTN01": "ktn",   // Kelantan
+    "MLK01": "mlk",   // Melaka
+    "NSN01": "nsn",   // Negeri Sembilan
+    "PHG01": "phg",   // Pahang
+    "PNG01": "png",   // Pulau Pinang
+    "PRK01": "prk",   // Perak
+    "PLS01": "pls",   // Perlis
+    "SBH01": "sbh",   // Sabah
+    "SWK01": "swk",   // Sarawak
+    "SGR01": "sgr",   // Selangor
+    "TRG01": "trg"    // Terengganu
+};
+
+
+// =============================
+// 1) LOAD WAKTU SOLAT
+// =============================
 async function loadWaktuSolat(zone = "WLY01") {
-    const solatBox = document.getElementById("solatBox");
-    solatBox.innerHTML = " Memuatkan waktu solat...";
+    const box = document.getElementById("solatBox");
+    box.innerHTML = "🕌 Memuatkan waktu solat...";
 
-    try {
-        const response = await fetch(`${WORKER_URL}?kawasan=${zone}`);
-        const data = await response.json();
+    try {
+        const zonCode = ZONE_API_MAP[zone] || "wlp";
 
-        if (data.error || !data.prayer_times) {
-            solatBox.innerHTML = " Gagal memuatkan waktu solat";
-            return;
-        }
+        const url = `https://api.waktusolat.app/v2/solat/${zonCode}`;
+        const res = await fetch(url);
+        const data = await res.json();
 
-        const w = data.prayer_times;
+        if (!data?.today) {
+            box.innerHTML = "❌ Gagal memuatkan waktu solat";
+            return;
+        }
 
-        solatBox.innerHTML = `
-            <strong>Waktu Solat</strong><br>
-            Subuh: ${w.fajr}<br>
-            Syuruk: ${w.syuruk}<br>
-            Zohor: ${w.dhuhr}<br>
-            Asar: ${w.asr}<br>
-            Maghrib: ${w.maghrib}<br>
-            Isyak: ${w.isha}
-        `;
-    } catch (e) {
-        solatBox.innerHTML = " Waktu solat gagal dimuat";
-    }
+        const w = data.today;
+
+        box.innerHTML = `
+            <strong>Waktu Solat</strong><br>
+            Subuh: ${w.Subuh}<br>
+            Syuruk: ${w.Syuruk}<br>
+            Zohor: ${w.Zohor}<br>
+            Asar: ${w.Asar}<br>
+            Maghrib: ${w.Maghrib}<br>
+            Isyak: ${w.Isyak}
+        `;
+    } catch (err) {
+        box.innerHTML = "❌ Gagal memuatkan waktu solat";
+    }
 }
 
-// ======================================
-// 2) VISITOR COUNTER — CountAPI (simple)
-// ======================================
-async function loadVisitors() {
-    const el = document.getElementById("visitCount");
-    if (!el) return;
 
-    try {
-        const response = await fetch(
-            `https://api.countapi.xyz/hit/${COUNTER_NAMESPACE}`
-        );
-        const data = await response.json();
 
-        el.innerHTML = data.value || 0;
-    } catch (e) {
-        el.innerHTML = "Err";
-    }
+// =====================================================
+// PLAN C: VISITOR COUNTER LOCALSTORAGE (NO ERROR)
+// =====================================================
+function loadVisitors() {
+    let visits = localStorage.getItem("ztakaful_visits");
+
+    if (!visits) visits = 0;
+
+    visits = parseInt(visits) + 1;
+
+    localStorage.setItem("ztakaful_visits", visits);
+
+    document.getElementById("visitCount").innerHTML = visits;
 }
 
-// ======================================
-// 3) PAGE LOAD
-// ======================================
+
+
+// =============================
+// PAGE LOAD
+// =============================
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Waktu solat default KL
-    loadWaktuSolat("WLY01");
+    // Default: KL
+    loadWaktuSolat("WLY01");
 
-    // Visitor counter
-    loadVisitors();
+    // Visitor Counter
+    loadVisitors();
 
-    // Dropdown pilih negeri
-    const stateSel = document.getElementById("stateSelect");
-    if (stateSel) {
-        stateSel.addEventListener("change", () => {
-            loadWaktuSolat(stateSel.value);
-            localStorage.setItem("chosenState", stateSel.value);
-        });
+    // Negeri Dropdown
+    const stateSel = document.getElementById("stateSelect");
 
-        // Load pilihan negeri simpan
-        const saved = localStorage.getItem("chosenState");
-        if (saved) {
-            stateSel.value = saved;
-            loadWaktuSolat(saved);
-        }
-    }
+    if (stateSel) {
+        stateSel.addEventListener("change", () => {
+            loadWaktuSolat(stateSel.value);
+            localStorage.setItem("chosenState", stateSel.value);
+        });
+
+        // Load simpanan user
+        const saved = localStorage.getItem("chosenState");
+        if (saved) {
+            stateSel.value = saved;
+            loadWaktuSolat(saved);
+        }
+    }
 });
