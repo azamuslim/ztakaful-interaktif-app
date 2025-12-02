@@ -1,77 +1,85 @@
+// ======================================
+// CONFIG
+// ======================================
 const WORKER_URL = "https://green-dust-cb98.azamuslim.workers.dev/";
+const COUNTER_NAMESPACE = "azamuslim_ztakaful_app_visitors"; 
+// (nama unik — bro boleh tukar kalau nak)
 
-// =========================
-// 1) WAKTU SOLAT
-// =========================
+// ======================================
+// 1) WAKTU SOLAT via Cloudflare Worker
+// ======================================
 async function loadWaktuSolat(zone = "WLY01") {
-    const solatBox = document.getElementById("solatBox");
-    solatBox.innerHTML = "🕌 Memuatkan waktu solat...";
+    const solatBox = document.getElementById("solatBox");
+    solatBox.innerHTML = " Memuatkan waktu solat...";
 
-    try {
-        const response = await fetch(`${WORKER_URL}?kawasan=${zone}`);
-        const data = await response.json();
+    try {
+        const response = await fetch(`${WORKER_URL}?kawasan=${zone}`);
+        const data = await response.json();
 
-        if (data.error) {
-            solatBox.innerHTML = "❌ Gagal memuatkan waktu solat";
-            return;
-        }
+        if (data.error || !data.prayer_times) {
+            solatBox.innerHTML = " Gagal memuatkan waktu solat";
+            return;
+        }
 
-        const w = data.prayer_times;
+        const w = data.prayer_times;
 
-        solatBox.innerHTML = `
-            <strong>Waktu Solat</strong><br>
-            Subuh: ${w.fajr}<br>
-            Syuruk: ${w.syuruk}<br>
-            Zohor: ${w.dhuhr}<br>
-            Asar: ${w.asr}<br>
-            Maghrib: ${w.maghrib}<br>
-            Isyak: ${w.isha}
-        `;
-    } catch (e) {
-        solatBox.innerHTML = "❌ Waktu solat gagal dimuat";
-    }
+        solatBox.innerHTML = `
+            <strong>Waktu Solat</strong><br>
+            Subuh: ${w.fajr}<br>
+            Syuruk: ${w.syuruk}<br>
+            Zohor: ${w.dhuhr}<br>
+            Asar: ${w.asr}<br>
+            Maghrib: ${w.maghrib}<br>
+            Isyak: ${w.isha}
+        `;
+    } catch (e) {
+        solatBox.innerHTML = " Waktu solat gagal dimuat";
+    }
 }
 
-// =========================
-// 2) VISITOR COUNTER
-// =========================
-function loadVisitors() {
-    const el = document.getElementById("visitCount");
+// ======================================
+// 2) VISITOR COUNTER — CountAPI (simple)
+// ======================================
+async function loadVisitors() {
+    const el = document.getElementById("visitCount");
+    if (!el) return;
 
-    fetch(`${WORKER_URL}?counter=true`)
-        .then(r => r.json())
-        .then(d => {
-            el.innerHTML = d.visits;
-        })
-        .catch(() => {
-            el.innerHTML = "Err";
-        });
+    try {
+        const response = await fetch(
+            `https://api.countapi.xyz/hit/${COUNTER_NAMESPACE}`
+        );
+        const data = await response.json();
+
+        el.innerHTML = data.value || 0;
+    } catch (e) {
+        el.innerHTML = "Err";
+    }
 }
 
-// =========================
-// 3) ON PAGE LOAD
-// =========================
+// ======================================
+// 3) PAGE LOAD
+// ======================================
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Default KL
-    loadWaktuSolat("WLY01");
+    // Waktu solat default KL
+    loadWaktuSolat("WLY01");
 
-    // Visitor
-    loadVisitors();
+    // Visitor counter
+    loadVisitors();
 
-    // Dropdown pilih negeri
-    const stateSel = document.getElementById("stateSelect");
-    if (stateSel) {
-        stateSel.addEventListener("change", () => {
-            loadWaktuSolat(stateSel.value);
-            localStorage.setItem("chosenState", stateSel.value);
-        });
+    // Dropdown pilih negeri
+    const stateSel = document.getElementById("stateSelect");
+    if (stateSel) {
+        stateSel.addEventListener("change", () => {
+            loadWaktuSolat(stateSel.value);
+            localStorage.setItem("chosenState", stateSel.value);
+        });
 
-        // load saved
-        const saved = localStorage.getItem("chosenState");
-        if (saved) {
-            stateSel.value = saved;
-            loadWaktuSolat(saved);
-        }
-    }
+        // Load pilihan negeri simpan
+        const saved = localStorage.getItem("chosenState");
+        if (saved) {
+            stateSel.value = saved;
+            loadWaktuSolat(saved);
+        }
+    }
 });
