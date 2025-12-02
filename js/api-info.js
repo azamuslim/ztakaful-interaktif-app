@@ -1,5 +1,5 @@
 // =================================================
-// PLAN A (Latest): API WAKTU SOLAT (direct zone)
+// FINAL: API WAKTU SOLAT — CONFIRM WORKING
 // =================================================
 
 async function loadWaktuSolat(zone = "WLY01") {
@@ -11,13 +11,12 @@ async function loadWaktuSolat(zone = "WLY01") {
         const res = await fetch(url);
         const data = await res.json();
 
-        // API return format: data.prayers
-        if (!data?.prayers) {
+        if (!data?.prayer_times) {
             box.innerHTML = "❌ Gagal memuatkan waktu solat";
             return;
         }
 
-        const w = data.prayers;
+        const w = data.prayer_times;
 
         box.innerHTML = `
             <strong>Waktu Solat</strong><br>
@@ -35,7 +34,7 @@ async function loadWaktuSolat(zone = "WLY01") {
 
 
 // =====================================================
-// PLAN C: VISITOR COUNTER LOCALSTORAGE (NO ERROR)
+// VISITOR COUNTER LOCALSTORAGE (NO ERROR)
 // =====================================================
 function loadVisitors() {
     let visits = localStorage.getItem("ztakaful_visits") || 0;
@@ -51,9 +50,13 @@ function loadVisitors() {
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
 
+    // Default zone KL
     loadWaktuSolat("WLY01");
+
+    // Visitor Counter
     loadVisitors();
 
+    // Dropdown Negeri
     const stateSel = document.getElementById("stateSelect");
 
     if (stateSel) {
