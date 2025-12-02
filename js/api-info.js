@@ -2,7 +2,7 @@
 // CONFIG
 // ======================================
 const WORKER_URL = "https://green-dust-cb98.azamuslim.workers.dev/";
-const COUNTER_NAMESPACE = "azamuslim_ztakaful_app_visitors"; 
+const COUNTER_NAMESPACE = "ztakaful_app_visitors"; 
 // (nama unik — bro boleh tukar kalau nak)
 
 // ======================================
