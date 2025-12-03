@@ -81,6 +81,48 @@ h2 {
 .btn:hover {
   background: #0f3a7a;
 }
+
+/* VICTORY OVERLAY */
+#victoryOverlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+  backdrop-filter: blur(3px);
+}
+
+.victory-box {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  max-width: 85%;
+  animation: popIn 0.4s ease forwards;
+  text-align: center;
+}
+
+.victory-box h1 {
+  margin-bottom: 8px;
+  color: #0a1f44;
+}
+
+.victory-box button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #0a1f44;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+@keyframes popIn {
+  from {opacity: 0; transform: scale(0.8);}
+  to {opacity: 1; transform: scale(1);}
+}
 </style>
 </head>
 
@@ -108,9 +150,19 @@ h2 {
 <audio id="moveSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_13a4d3a3b3.mp3?filename=click-124467.mp3"></audio>
 <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_248f717fde.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
 
+<!-- Victory Overlay -->
+<div id="victoryOverlay">
+  <div class="victory-box">
+    <h1>🎉 Tahniah! 🎉</h1>
+    <p>Anda berjaya susun semua kotak!</p>
+    <button onclick="restartGame()">Main Lagi</button>
+  </div>
+</div>
+
 <script>
 let tiles = [1,2,3,4,5,6,7,8,null];
 let moves = 0;
+let gameWon = false;
 
 const board = document.getElementById("board");
 const moveDisplay = document.getElementById("moves");
@@ -126,7 +178,7 @@ function renderBoard() {
     } else {
       div.className = "tile";
       div.innerText = tile;
-      div.onclick = () => moveTile(index);
+      div.onclick = () => !gameWon && moveTile(index);
     }
 
     board.appendChild(div);
@@ -156,22 +208,63 @@ function moveTile(index) {
 }
 
 function shuffleTiles() {
+  gameWon = false;
   tiles.sort(() => Math.random() - 0.5);
   moves = 0;
   moveDisplay.innerText = moves;
   renderBoard();
 }
 
+function restartGame() {
+  document.getElementById("victoryOverlay").style.display = "none";
+  shuffleTiles();
+}
+
 function checkWin() {
   const correct = [1,2,3,4,5,6,7,8,null];
 
   if (JSON.stringify(tiles) === JSON.stringify(correct)) {
-    document.getElementById("winSound").play();
-    setTimeout(() => {
-      alert("🎉 Tahniah! Anda berjaya susun semua kotak!");
-    }, 200);
+    gameWon = true;
+
+    // main victory sound
+    const win = document.getElementById("winSound");
+    win.currentTime = 0;
+    win.play();
+
+    // show overlay
+    document.getElementById("victoryOverlay").style.display = "flex";
+
+    // trigger confetti
+    launchConfetti();
   }
 }
+
+function launchConfetti() {
+  for (let i = 0; i < 25; i++) {
+    const emoji = document.createElement("div");
+    emoji.textContent = ["🎉","✨","🎊","💫","🥳"][Math.floor(Math.random()*5)];
+    emoji.style.position = "fixed";
+    emoji.style.top = "-20px";
+    emoji.style.left = Math.random()*100 + "vw";
+    emoji.style.fontSize = (22 + Math.random()*20) + "px";
+    emoji.style.animation = `fall ${1.5+Math.random()}s linear forwards`;
+    emoji.style.zIndex = 99999;
+    document.body.appendChild(emoji);
+
+    setTimeout(()=> emoji.remove(), 2500);
+  }
+}
+
+document.head.insertAdjacentHTML("beforeend", `
+<style>
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+</style>
+`);
 
 shuffleTiles();
 </script>
