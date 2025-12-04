@@ -145,6 +145,10 @@ header {
   </div>
 </div>
 
+<!-- SOUND EFFECTS -->
+<audio id="soundCorrect" src="sounds/correct.mp3"></audio>
+<audio id="soundWrong" src="sounds/wrong.mp3"></audio>
+
 <script>
 let score = 0;
 let currentIndex = 0;
@@ -153,107 +157,180 @@ let currentCategory = "general";
 let questions = {
 
   general: [
-  {
-    q: "Apakah tujuan utama Takaful?",
-    a: ["Perlindungan kewangan berasaskan perkongsian risiko", "Pelaburan saham", "Pinjaman peribadi", "Cukai kerajaan"],
-    c: 0
-  },
-  {
-    q: "Apakah maksud 'tabarru’' dalam takaful?",
-    a: ["Derma/sumbangan", "Pelaburan", "Pinjaman", "Premium"],
-    c: 0
-  },
-  {
-    q: "Dokumen rasmi perlindungan takaful dipanggil?",
-    a: ["Sijil Takaful", "Resit Pajakan", "Polisi Bank", "Surat Jaminan"],
-    c: 0
-  },
-  {
-    q: "Siapa yang menguruskan dana risiko dalam takaful?",
-    a: ["Pengendali Takaful", "Peserta", "Bank Negara", "Wakil Insurans"],
-    c: 0
-  },
-  {
-    q: "Apakah yang dimaksudkan dengan hibah dalam takaful?",
-    a: ["Penamaan penerima manfaat", "Kadar sumbangan", "Had perlindungan", "Bonus tahunan"],
-    c: 0
-  },
-  {
-    q: "Risiko manakah TIDAK dilindungi dalam Takaful Kebakaran?",
-    a: ["Kemalangan jalan raya", "Kebakaran", "Petir", "Letupan gas domestik"],
-    c: 0
-  },
-  {
-    q: "Apakah maksud 'contribution' dalam takaful?",
-    a: ["Bayaran bulanan/ tahunan peserta", "Pulangan dividen", "Cukai perkhidmatan", "Kos tuntutan"],
-    c: 0
-  },
-  {
-    q: "Dana risiko dalam takaful dikongsi oleh?",
-    a: ["Semua peserta takaful", "Kerajaan", "Wakil jualan", "Bank"],
-    c: 0
-  },
-  {
-    q: "Bilakah pampasan dibayar dalam takaful?",
-    a: ["Apabila berlaku musibah yang dilindungi", "Setiap bulan", "Hanya apabila sijil matang", "Hanya selepas 10 tahun"],
-    c: 0
-  },
-  {
-    q: "Apa kelebihan takaful berbanding insurans konvensional?",
-    a: ["Patuh Syariah", "Lebih berat", "Tiada perlindungan", "Hanya untuk golongan tertentu"],
-    c: 0
-  }
-],
+    { q: "Apakah tujuan utama Takaful?", 
+      options: ["Perlindungan kewangan berasaskan perkongsian risiko", "Pelaburan saham", "Pinjaman peribadi", "Cukai kerajaan"], 
+      answer: 0 },
+
+    { q: "Apakah maksud 'tabarru’' dalam takaful?",
+      options: ["Derma/sumbangan", "Pelaburan", "Pinjaman", "Premium"],
+      answer: 0 },
+
+    { q: "Dokumen rasmi perlindungan takaful dipanggil?",
+      options: ["Sijil Takaful", "Resit Pajakan", "Polisi Bank", "Surat Jaminan"],
+      answer: 0 },
+
+    { q: "Siapa yang menguruskan dana risiko dalam takaful?",
+      options: ["Pengendali Takaful", "Peserta", "Bank Negara", "Wakil Insurans"],
+      answer: 0 },
+
+    { q: "Apakah yang dimaksudkan dengan hibah dalam takaful?",
+      options: ["Penamaan penerima manfaat", "Kadar sumbangan", "Had perlindungan", "Bonus tahunan"],
+      answer: 0 },
+
+    { q: "Risiko manakah TIDAK dilindungi dalam Takaful Kebakaran?",
+      options: ["Kemalangan jalan raya", "Kebakaran", "Petir", "Letupan gas domestik"],
+      answer: 0 },
+
+    { q: "Apakah maksud 'contribution' dalam takaful?",
+      options: ["Bayaran bulanan/ tahunan peserta", "Pulangan dividen", "Cukai perkhidmatan", "Kos tuntutan"],
+      answer: 0 },
+
+    { q: "Dana risiko dalam takaful dikongsi oleh?",
+      options: ["Semua peserta takaful", "Kerajaan", "Wakil jualan", "Bank"],
+      answer: 0 },
+
+    { q: "Bilakah pampasan dibayar dalam takaful?",
+      options: ["Apabila berlaku musibah yang dilindungi", "Setiap bulan", "Hanya apabila sijil matang", "Hanya selepas 10 tahun"],
+      answer: 0 },
+
+    { q: "Apa kelebihan takaful berbanding insurans konvensional?",
+      options: ["Patuh Syariah", "Lebih berat", "Tiada perlindungan", "Hanya untuk golongan tertentu"],
+      answer: 0 }
+  ],
 
   vehicle: [
-    {
-      q: "Apa kegunaan cukai jalan (road tax)?",
-      options: ["Bayar saman", "Kebenaran guna kenderaan di jalan", "Bayar insurans", "Minyak percuma"],
-      answer: 1
-    },
-    {
-      q: "Bahagian yang mengawal kelajuan kereta ialah?",
-      options: ["Brake", "Steering", "Throttle", "Clutch"],
-      answer: 2
-    }
+    { q: "Apakah maksud 'Comprehensive'?",
+      options: ["Lindungi kereta sendiri + pihak ketiga", "Lindungi pihak ketiga sahaja", "Hanya cermin", "Hanya banjir"],
+      answer: 0 },
+
+    { q: "Apakah itu NCD?",
+      options: ["Diskaun untuk tahun tanpa tuntutan", "Cukai jalan", "Nombor enjin", "Polisi khas motosikal"],
+      answer: 0 },
+
+    { q: "Risiko manakah biasanya TIDAK dilindungi tanpa add-on?",
+      options: ["Banjir", "Kemalangan biasa", "Kecurian", "Kerosakan akibat pelanggaran"],
+      answer: 0 },
+
+    { q: "Apakah dokumen penting semasa membuat tuntutan?",
+      options: ["Laporan polis", "Kad bank", "Sijil berhenti sekolah", "Gambar profil"],
+      answer: 0 },
+
+    { q: "Add-on 'windscreen' melindungi?",
+      options: ["Cermin hadapan & tingkap", "Tayar", "Enjin", "Cat kereta"],
+      answer: 0 },
+
+    { q: "Apakah itu ‘Excess’?",
+      options: ["Jumlah yang perlu dibayar peserta sebelum tuntutan dibayar", "Jumlah cukai pintu", "Jumlah penalti NCD", "Jumlah komisen ejen"],
+      answer: 0 },
+
+    { q: "Berapakah tempoh NCD maksimum kereta di Malaysia?",
+      options: ["55%", "100%", "10%", "80%"],
+      answer: 0 },
+
+    { q: "Jenis perlindungan manakah wajib di Malaysia?",
+      options: ["Third Party", "Comprehensive", "Fire & Theft", "Tiada yang wajib"],
+      answer: 0 },
+
+    { q: "Tuntutan 'Total Loss' bermaksud?",
+      options: ["Kereta rosak teruk melebihi nilai tertentu", "Cermin retak", "Tayar botak", "Kereta hilang angin"],
+      answer: 0 },
+
+    { q: "Add-on SRCC merujuk kepada?",
+      options: ["Strike, Riot, Civil Commotion", "Servis Radiator Coolant Cover", "Special Road Crash Cover", "Standard Repair & Check Charge"],
+      answer: 0 }
   ],
 
   compare: [
-    {
-      q: "Perbezaan utama takaful & insurans konvensional ialah?",
-      options: ["Harga", "Konsep syariah vs riba", "Warna kad", "Syarikat"],
-      answer: 1
-    },
-    {
-      q: "Dalam takaful, konsep perkongsian risiko dikenali sebagai?",
-      options: ["Tabarru’", "Riba", "Pinjaman", "Dividen"],
-      answer: 0
-    }
+    { q: "Apakah perbezaan asas takaful berbanding insurans?",
+      options: ["Perkongsian risiko vs jualan risiko", "Lebih murah", "Tiada dokumen", "Tiada risiko"],
+      answer: 0 },
+
+    { q: "Dalam insurans, siapa pemilik dana risiko?",
+      options: ["Syarikat insurans", "Peserta", "Kerajaan", "Bank"],
+      answer: 0 },
+
+    { q: "Dalam takaful, lebihan (surplus) boleh diagih kepada?",
+      options: ["Peserta", "Bank Negara", "Wakil Takaful", "Cukai pendapatan"],
+      answer: 0 },
+
+    { q: "Kontrak takaful berdasarkan konsep apa?",
+      options: ["Tabarru’ & Wakalah", "Pinjaman", "Konvensional", "Hadiah"],
+      answer: 0 },
+
+    { q: "Apakah istilah ‘premium’ dalam takaful?",
+      options: ["Sumbangan", "Cukai", "Deposit", "Denda"],
+      answer: 0 },
+
+    { q: "Manakah yang TIDAK patuh syariah?",
+      options: ["Insurans konvensional", "Takaful", "Dana Tabarru", "Konsep Wakalah"],
+      answer: 0 },
+
+    { q: "Dalam insurans, keuntungan hasil risiko dimiliki oleh?",
+      options: ["Syarikat insurans", "Peserta", "Wakil", "Tabung haji"],
+      answer: 0 },
+
+    { q: "Dalam takaful, keuntungan hasil pengurusan dana dipanggil?",
+      options: ["Wakalah fee", "Dividend", "Tax return", "NCD"],
+      answer: 0 },
+
+    { q: "Apakah persamaan takaful & insurans?",
+      options: ["Kedua-duanya memberi perlindungan", "Kedua-duanya patuh syariah", "Dua-dua jamin untung", "Dua-dua tanpa risiko"],
+      answer: 0 },
+
+    { q: "Takaful mengelakkan unsur apa?",
+      options: ["Gharar, riba, maisir", "Bonus", "Hadiah", "Pampasan"],
+      answer: 0 }
   ],
 
   guess: [
-    {
-      q: "Bahagian ini digunakan untuk memberhentikan kenderaan.",
-      options: ["Gear", "Brake", "Radiator", "Alternator"],
-      answer: 1
-    },
-    {
-      q: "Komponen ini mengecas bateri kereta.",
-      options: ["Radiator", "Spark Plug", "Alternator", "Clutch"],
-      answer: 2
-    }
+    { q: "Bahagian manakah digunakan untuk menyejukkan enjin?",
+      options: ["Radiator", "Alternator", "Absorber", "Fuel Pump"],
+      answer: 0 },
+
+    { q: "Komponen yang memulakan proses menghidupkan enjin ialah?",
+      options: ["Starter Motor", "Radiator", "Axle", "Shock Absorber"],
+      answer: 0 },
+
+    { q: "Bahagian mana menghasilkan elektrik ketika kereta hidup?",
+      options: ["Alternator", "Battery", "Compressor", "ECU"],
+      answer: 0 },
+
+    { q: "Komponen untuk menyerap hentakan jalan ialah?",
+      options: ["Absorber", "Radiator", "Drive Shaft", "Fan Belt"],
+      answer: 0 },
+
+    { q: "Bahagian yang menyimpan tenaga elektrik kereta?",
+      options: ["Battery", "Alternator", "Ignition Coil", "ECU"],
+      answer: 0 },
+
+    { q: "Apakah bahagian yang mengawal suhu dalam kabin?",
+      options: ["Aircond Compressor", "Fuel Pump", "Catalytic Converter", "ECU"],
+      answer: 0 },
+
+    { q: "Komponen yang menukarkan bahan api kepada tenaga untuk enjin?",
+      options: ["Fuel Injector", "Radiator", "Air Filter", "Alternator"],
+      answer: 0 },
+
+    { q: "Bahagian yang membantu menukar gear secara automatik?",
+      options: ["Transmission", "Exhaust", "Fan Motor", "Head Unit"],
+      answer: 0 },
+
+    { q: "Apakah bahagian yang mengurangkan pencemaran asap enjin?",
+      options: ["Catalytic Converter", "Fuel Tank", "Aircond Coil", "Carburetor"],
+      answer: 0 },
+
+    { q: "Komponen tempat enjin menerima udara bersih?",
+      options: ["Air Filter", "Oil Sump", "ECU", "Throttle Body"],
+      answer: 0 }
   ]
 };
 
 //
-// ✅ AUTO BACA KATEGORI DARI LINK BUTTON
+// READ CATEGORY FROM URL ?type=
 //
 const urlParams = new URLSearchParams(window.location.search);
 const type = urlParams.get("type");
-
-if (type && questions[type]) {
-  currentCategory = type;
-}
+if (type && questions[type]) currentCategory = type;
 
 document.getElementById("quizCategory").value = currentCategory;
 
@@ -267,25 +344,31 @@ function loadQuestion() {
   const optionsDiv = document.getElementById("options");
   optionsDiv.innerHTML = "";
 
-  qData.options.forEach((opt, index) => {
+  qData.options.forEach((opt, i) => {
     const btn = document.createElement("button");
     btn.classList.add("option-btn");
     btn.innerText = opt;
-    btn.onclick = () => checkAnswer(btn, index, qData.answer);
+    btn.onclick = () => checkAnswer(btn, i, qData.answer);
     optionsDiv.appendChild(btn);
   });
 }
 
+//
+// CHECK ANSWER WITH SOUND + HIGHLIGHT
+//
 function checkAnswer(button, selected, correct) {
-  const allBtns = document.querySelectorAll(".option-btn");
-  allBtns.forEach(btn => btn.disabled = true);
+  const all = document.querySelectorAll(".option-btn");
+
+  all.forEach(b => b.disabled = true);
 
   if (selected === correct) {
     button.classList.add("correct");
+    document.getElementById("soundCorrect").play();
     score++;
   } else {
     button.classList.add("wrong");
-    allBtns[correct].classList.add("correct");
+    document.getElementById("soundWrong").play();
+    all[correct].classList.add("correct");
   }
 
   document.getElementById("score").innerText = score;
@@ -295,9 +378,9 @@ function nextQuestion() {
   currentIndex++;
 
   if (currentIndex >= questions[currentCategory].length) {
-    alert("Quiz tamat! Skor akhir: " + score);
-    currentIndex = 0;
-    score = 0;
+    alert("✔️ Quiz Tamat! Skor akhir: " + score);
+    restartQuiz();
+    return;
   }
 
   loadQuestion();
@@ -311,9 +394,7 @@ function restartQuiz() {
 
 function changeCategory() {
   currentCategory = document.getElementById("quizCategory").value;
-  currentIndex = 0;
-  score = 0;
-  loadQuestion();
+  restartQuiz();
 }
 
 loadQuestion();
