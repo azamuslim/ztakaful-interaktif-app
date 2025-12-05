@@ -23,45 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
     "TRG01": { name: "Terengganu", lat: 5.3290, lon: 103.1370 }
   };
 
-  // ===============================
-  // DEFAULT — Kuala Lumpur
-  // ===============================
+  // DEFAULT ZONE
   let zone = localStorage.getItem("zone") || "WLY01";
   stateSelect.value = zone;
 
   // ===============================
-  // LOAD CUACA
-  // ===============================
-  async function loadWeather() {
-    const selected = LOC[zone];
-    cuacaBox.innerText = "☁️ Loading cuaca...";
-
-    try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${selected.lat}&longitude=${selected.lon}&current_weather=true`;
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (!data.current_weather) {
-        cuacaBox.innerText = "❌ Cuaca tidak tersedia";
-        return;
-      }
-
-      const temp = Math.round(data.current_weather.temperature);
-      const code = data.current_weather.weathercode;
-
-      const weatherDesc = getWeatherDesc(code);
-
-      cuacaBox.innerHTML = `☁️ ${selected.name} | ${temp}°C | ${weatherDesc}`;
-
-    } catch (e) {
-      cuacaBox.innerText = "❌ Cuaca Error";
-      console.log(e);
-    }
-  }
-
-  // ===============================
-  // WEATHER DESCRIPTION (Open Meteo)
+  // KOD → TEKS CUACA (Open-Meteo)
   // ===============================
   function getWeatherDesc(code) {
     const map = {
@@ -84,8 +51,71 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ===============================
-  // CHANGE STATE
+  // KOD → ICON FILE
   // ===============================
+  function getWeatherIcon(code) {
+    if (code === 0) return "icons/weather/clear.png";
+    if (code === 1) return "icons/weather/partly-cloudy.png";
+    if (code === 2) return "icons/weather/cloudy.png";
+    if (code === 3) return "icons/weather/cloudy.png";
+
+    if (code === 45 || code === 48) return "icons/weather/fog.png";
+
+    if (code === 51) return "icons/weather/rain-light.png";
+    if (code === 61 || code === 80 || code === 81) return "icons/weather/rain.png";
+    if (code === 63 || code === 82 || code === 65) return "icons/weather/rain-heavy.png";
+
+    if (code === 95 || code === 96 || code === 99) return "icons/weather/storm.png";
+
+    if (code === 71) return "icons/weather/snow.png";
+
+    return "icons/weather/partly-cloudy.png"; // fallback
+  }
+
+  // ===============================
+  // LOAD CUACA
+  // ===============================
+  async function loadWeather() {
+    const selected = LOC[zone];
+    cuacaBox.innerHTML = "⏳ Loading cuaca...";
+
+    try {
+      const url =
+        `https://api.open-meteo.com/v1/forecast?latitude=${selected.lat}` +
+        `&longitude=${selected.lon}&current_weather=true`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data.current_weather) {
+        cuacaBox.innerHTML = "❌ Cuaca tidak tersedia";
+        return;
+      }
+
+      const temp = Math.round(data.current_weather.temperature);
+      const code = data.current_weather.weathercode;
+
+      const desc = getWeatherDesc(code);
+      const icon = getWeatherIcon(code);
+
+      // PAPAR
+      cuacaBox.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="${icon}" width="55" />
+          <div>
+            <strong>${selected.name}</strong><br>
+            ${temp}°C • ${desc}
+          </div>
+        </div>
+      `;
+
+    } catch (e) {
+      cuacaBox.innerHTML = "❌ Cuaca Error";
+      console.log(e);
+    }
+  }
+
+  // CHANGE STATE
   stateSelect.addEventListener("change", () => {
     zone = stateSelect.value;
     localStorage.setItem("zone", zone);
@@ -95,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // FIRST LOAD
   loadWeather();
 
-  // REFRESH SETIAP 10 MINIT
+  // REFRESH 10 MINIT
   setInterval(loadWeather, 600000);
 
 });
