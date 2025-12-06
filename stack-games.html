@@ -1,5 +1,3 @@
-<!-- stack-games.html -->
-<!-- Bro, ini file standalone game susun kotak seperti diminta. -->
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -15,19 +13,15 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-    }
-    #gameContainer {
-      margin-top: 20px;
-      position: relative;
     }
     canvas {
       border: 2px solid #444;
       border-radius: 8px;
       background: #000;
+      margin-top: 20px;
     }
     #ui {
-      margin-top: 10px;
+      margin-top: 15px;
       display: flex;
       gap: 10px;
     }
@@ -45,205 +39,207 @@
   </style>
 </head>
 <body>
-  <h2>Stack Games</h2>
 
-  <div id="gameContainer">
-    <canvas id="gameCanvas" width="300" height="500"></canvas>
-  </div>
+  <h2>Stack Games</h2>
+  <canvas id="gameCanvas" width="300" height="500"></canvas>
 
   <div id="ui">
-    <button id="btnHome" onclick="goHome()">Home</button>
-    <button id="btnPause" onclick="togglePause()">Pause</button>
-    <button id="btnRestart" onclick="restartGame()">Restart</button>
-    <button id="btnFS" onclick="toggleFullscreen()">Fullscreen</button>
+    <button onclick="goHome()">Home</button>
+    <button onclick="togglePause()">Pause</button>
+    <button onclick="restartGame()">Restart</button>
+    <button onclick="toggleFullscreen()">Fullscreen</button>
   </div>
 
-  <script>
-// --- SOUND FILES ---
-const sndDrop = new Audio('drop.mp3');
-const sndClear = new Audio('clear.mp3');
-const sndRotate = new Audio('rotate.mp3');
-const sndOver = new Audio('gameover.mp3');
+<script>
+// =====================
+// 🔊 SOUND
+// =====================
+const sndDrop   = new Audio('sounds/drop.mp3');
+const sndClear  = new Audio('sounds/clear.mp3');
+const sndRotate = new Audio('sounds/rotate.mp3');
+const sndOver   = new Audio('sounds/gameover.mp3');
 
-    // -----------------------
-    // BASIC GAME ENGINE
-    // -----------------------
+// =====================
+// 🎮 GAME ENGINE
+// =====================
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+const COLS = 10;
+const ROWS = 20;
+const BLOCK = 25;
 
-    const COLS = 10;
-    const ROWS = 20;
-    const BLOCK = 25;
+let grid = [];
+let currentPiece;
+let dropCounter = 0;
+let dropInterval = 500;
+let lastTime = 0;
+let paused = false;
 
-    let grid = [];
-    let currentPiece = null;
-    let dropCounter = 0;
-    let dropInterval = 500;
-    let lastTime = 0;
-    let paused = false;
+// SHAPES
+const shapes = [
+  [[1,1,1,1]],
+  [[1,1],[1,1]],
+  [[0,1,0],[1,1,1]],
+  [[1,0,0],[1,1,1]],
+  [[0,0,1],[1,1,1]]
+];
 
-    // Shapes
-    const shapes = [
-      [[1,1,1,1]],
-      [[1,1],[1,1]],
-      [[0,1,0],[1,1,1]],
-      [[1,0,0],[1,1,1]],
-      [[0,0,1],[1,1,1]]
-    ];
+function resetGrid(){
+  grid = Array.from({length: ROWS},()=>Array(COLS).fill(0));
+}
 
-    // Init Grid
-    function resetGrid(){
-      grid = Array.from({length: ROWS},()=>Array(COLS).fill(0));
-    }
+function randomColor(){
+  return `hsl(${Math.random()*360},70%,60%)`;
+}
 
-    function newPiece(){
-      const shape = shapes[Math.floor(Math.random()*shapes.length)];
-      return {
-        matrix: shape,
-        x: 3,
-        y: 0,
-        color: randomColor()
-      };
-    }
+function newPiece(){
+  const shape = shapes[Math.floor(Math.random()*shapes.length)];
+  return {
+    matrix: shape,
+    x: 3,
+    y: 0,
+    color: randomColor()
+  };
+}
 
-    function randomColor(){
-      return `hsl(${Math.random()*360}, 70%, 60%)`;
-    }
-
-    function collide(grid, piece){
-      for(let y=0;y<piece.matrix.length;y++){
-        for(let x=0;x<piece.matrix[y].length;x++){
-          if(piece.matrix[y][x] &&
-             (grid[piece.y+y] && grid[piece.y+y][piece.x+x])!==0){
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    function merge(grid,piece){
-      piece.matrix.forEach((row,y)=>{
-        row.forEach((val,x)=>{
-          if(val){
-            grid[piece.y+y][piece.x+x] = piece.color;
-          }
-        })
-      })
-    }
-
-    function function clearLines(){
-      let cleared = 0;(){
-      let cleared = 0;
-      for(let y=ROWS-1; y>=0; y--){
-        if(grid[y].every(v=>v!==0)){
-          grid.splice(y,1);
-          grid.unshift(Array(COLS).fill(0));
-          cleared++; sndClear.play();;
-        }
+function collide(grid,piece){
+  for(let y=0;y<piece.matrix.length;y++){
+    for(let x=0;x<piece.matrix[y].length;x++){
+      if(piece.matrix[y][x] &&
+        (grid[piece.y+y] && grid[piece.y+y][piece.x+x]) !== 0){
+        return true;
       }
     }
+  }
+  return false;
+}
 
-    function draw(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-
-      // Draw grid
-      for(let y=0;y<ROWS;y++){
-        for(let x=0;x<COLS;x++){
-          if(grid[y][x]){
-            ctx.fillStyle = grid[y][x];
-            ctx.globalAlpha = 0.9;
-ctx.fillRect(x*BLOCK,y*BLOCK,BLOCK,BLOCK);
-          }
-        }
+function merge(grid,piece){
+  piece.matrix.forEach((row,y)=>{
+    row.forEach((val,x)=>{
+      if(val){
+        grid[piece.y+y][piece.x+x] = piece.color;
       }
-
-      // Draw piece
-      if(currentPiece){
-        currentPiece.matrix.forEach((row,y)=>{
-          row.forEach((val,x)=>{
-            if(val){
-              ctx.fillStyle = currentPiece.color;
-              ctx.fillRect((currentPiece.x+x)*BLOCK,(currentPiece.y+y)*BLOCK,BLOCK,BLOCK);
-            }
-          })
-        })
-      }
-    }
-
-    function drop(){
-      currentPiece.y++;
-      if(collide(grid,currentPiece)){
-        currentPiece.y--;
-        sndDrop.play();
-        merge(grid,currentPiece);
-        clearLines();
-        currentPiece = newPiece();
-        if(collide(grid,currentPiece)){
-          alert("Game Over Bro!");
-          restartGame();
-        }
-      }
-    }
-
-    function update(time=0){
-      if(!paused){
-        const delta = time-lastTime;
-        lastTime = time;
-        dropCounter += delta;
-        if(dropCounter>dropInterval){
-          drop();
-          dropCounter=0;
-        }
-        draw();
-      }
-      requestAnimationFrame(update);
-    }
-
-    function move(dir){
-      currentPiece.x += dir;
-      if(collide(grid,currentPiece)) currentPiece.x -= dir;
-    }
-
-    function rotate(){
-      const m = currentPiece.matrix;
-      const rotated = m[0].map((_,i)=>m.map(r=>r[i])).reverse();
-      const old = currentPiece.matrix;
-      currentPiece.matrix = rotated;
-      if(collide(grid,currentPiece)) currentPiece.matrix = old;
-    }
-
-    document.addEventListener("keydown", e =>{
-      if(paused) return;
-      if(e.key === "ArrowLeft") move(-1);
-      if(e.key === "ArrowRight") move(1);
-      if(e.key === "ArrowDown") drop();
-      if(e.key === "ArrowUp") rotate();
     });
+  });
+}
 
-    function restartGame(){
-      resetGrid();
-      currentPiece = newPiece();
+function clearLines(){
+  for(let y=ROWS-1; y>=0; y--){
+    if(grid[y].every(v=>v!==0)){
+      grid.splice(y,1);
+      grid.unshift(Array(COLS).fill(0));
+      sndClear.play();
     }
+  }
+}
 
-    function togglePause(){
-      paused = !paused;
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // GRID
+  for(let y=0;y<ROWS;y++){
+    for(let x=0;x<COLS;x++){
+      if(grid[y][x]){
+        ctx.fillStyle = grid[y][x];
+        ctx.globalAlpha = 0.9;
+        ctx.fillRect(x*BLOCK,y*BLOCK,BLOCK,BLOCK);
+      }
     }
+  }
 
-    function goHome(){
-      window.location.href = "/";
-    }
+  // CURRENT PIECE
+  if(currentPiece){
+    currentPiece.matrix.forEach((row,y)=>{
+      row.forEach((val,x)=>{
+        if(val){
+          ctx.fillStyle = currentPiece.color;
+          ctx.fillRect((currentPiece.x+x)*BLOCK,(currentPiece.y+y)*BLOCK,BLOCK,BLOCK);
+        }
+      });
+    });
+  }
+}
 
-    function toggleFullscreen(){
-      if(!document.fullscreenElement) canvas.requestFullscreen();
-      else document.exitFullscreen();
-    }
-
-    // START
-    resetGrid();
+function drop(){
+  currentPiece.y++;
+  if(collide(grid,currentPiece)){
+    currentPiece.y--;
+    sndDrop.play();
+    merge(grid,currentPiece);
+    clearLines();
     currentPiece = newPiece();
-    update();
-  </script>
+    if(collide(grid,currentPiece)){
+      sndOver.play();
+      alert("Game Over Bro!");
+      restartGame();
+    }
+  }
+}
+
+function update(time=0){
+  if(!paused){
+    const delta = time - lastTime;
+    lastTime = time;
+
+    dropCounter += delta;
+    if(dropCounter > dropInterval){
+      drop();
+      dropCounter = 0;
+    }
+
+    draw();
+  }
+  requestAnimationFrame(update);
+}
+
+function move(dir){
+  currentPiece.x += dir;
+  if(collide(grid,currentPiece)) currentPiece.x -= dir;
+}
+
+function rotate(){
+  const m = currentPiece.matrix;
+  const rotated = m[0].map((_,i)=>m.map(r=>r[i])).reverse();
+  const old = currentPiece.matrix;
+  currentPiece.matrix = rotated;
+
+  if(collide(grid,currentPiece)){
+    currentPiece.matrix = old;  
+  } else {
+    sndRotate.play();
+  }
+}
+
+document.addEventListener("keydown", e =>{
+  if(paused) return;
+
+  if(e.key === "ArrowLeft") move(-1);
+  if(e.key === "ArrowRight") move(1);
+  if(e.key === "ArrowDown") drop();
+  if(e.key === "ArrowUp") rotate();
+});
+
+function restartGame(){
+  resetGrid();
+  currentPiece = newPiece();
+}
+
+function togglePause(){ paused = !paused; }
+
+function goHome(){ window.location.href = "/"; }
+
+function toggleFullscreen(){
+  if(!document.fullscreenElement) canvas.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+// START GAME
+resetGrid();
+currentPiece = newPiece();
+update();
+</script>
+
 </body>
 </html>
