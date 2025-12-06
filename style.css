@@ -339,4 +339,23 @@ form button {
   background: #0f3a7a;
   transform: scale(1.05);
 }
+#mobileControls {
+  margin-top: 15px;
+  display: flex;
+  gap: 12px;
+}
+
+#mobileControls button {
+  padding: 14px 20px;
+  font-size: 20px;
+  background: #222;
+  border: 2px solid #555;
+  border-radius: 10px;
+  color: white;
+}
+#mobileControls button:active {
+  transform: scale(0.9);
+  background: #444;
+}
+
 
