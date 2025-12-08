@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stack Games</title>
+  <title>Stack Games PRO</title>
   <style>
     body {
       margin: 0;
@@ -26,40 +26,62 @@
       gap: 10px;
     }
     button {
-      padding: 8px 14px;
+      padding: 10px 16px;
       background:#333;
       color:#fff;
       border:none;
       border-radius:6px;
       cursor:pointer;
+      font-size:16px;
     }
-    button:hover{
-      background:#555;
+    button:hover { background:#555; }
+
+    #mobileControls {
+      display:flex;
+      gap:10px;
+      margin-top:15px;
+    }
+    #mobileControls button {
+      font-size:22px;
+      padding:12px 20px;
+    }
+
+    #scoreBox {
+      margin-top:10px;
+      font-size:18px;
     }
   </style>
 </head>
+
 <body>
 
-  <h2>Stack Games</h2>
-  <canvas id="gameCanvas" width="300" height="500"></canvas>
+<h2>Stack Games PRO</h2>
+<canvas id="gameCanvas" width="300" height="500"></canvas>
 
-  <div id="ui">
-    <button onclick="goHome()">Home</button>
-    <button onclick="togglePause()">Pause</button>
-    <button onclick="restartGame()">Restart</button>
-    <button onclick="toggleFullscreen()">Fullscreen</button>
-  </div>
-  <div id="mobileControls">
+<div id="scoreBox">
+  Score: <span id="score">0</span> |  
+  Highscore: <span id="highscore">0</span>
+</div>
+
+<div id="ui">
+  <button onclick="goHome()">Home</button>
+  <button onclick="togglePause()">Pause</button>
+  <button onclick="restartGame()">Restart</button>
+  <button onclick="toggleFullscreen()">Fullscreen</button>
+</div>
+
+<div id="mobileControls">
   <button onclick="move(-1)">◀️</button>
   <button onclick="rotate()">🔄</button>
   <button onclick="move(1)">▶️</button>
   <button onclick="drop()">⬇️</button>
+  <button onclick="hardDrop()">⏬</button>
 </div>
 
 
 <script>
 // =====================
-// 🔊 SOUND
+// SOUND
 // =====================
 const sndDrop   = new Audio('sounds/drop.mp3');
 const sndClear  = new Audio('sounds/clear.mp3');
@@ -67,7 +89,7 @@ const sndRotate = new Audio('sounds/rotate.mp3');
 const sndOver   = new Audio('sounds/gameover.mp3');
 
 // =====================
-// 🎮 GAME ENGINE
+// GAME ENGINE
 // =====================
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -78,12 +100,14 @@ const BLOCK = 25;
 
 let grid = [];
 let currentPiece;
+let ghostPiece;
 let dropCounter = 0;
-let dropInterval = 500;
+let dropInterval = 550;
 let lastTime = 0;
 let paused = false;
+let score = 0;
 
-// SHAPES
+// Tetromino shapes
 const shapes = [
   [[1,1,1,1]],
   [[1,1],[1,1]],
@@ -100,6 +124,16 @@ function randomColor(){
   return `hsl(${Math.random()*360},70%,60%)`;
 }
 
+// ============ GHOST PIECE ============
+function createGhost() {
+  ghostPiece = JSON.parse(JSON.stringify(currentPiece));
+  while(!collide(grid, ghostPiece)) {
+    ghostPiece.y++;
+  }
+  ghostPiece.y--; 
+}
+
+// ============ NEW PIECE ============
 function newPiece(){
   const shape = shapes[Math.floor(Math.random()*shapes.length)];
   return {
@@ -110,18 +144,23 @@ function newPiece(){
   };
 }
 
-function collide(grid,piece){
-  for(let y=0;y<piece.matrix.length;y++){
-    for(let x=0;x<piece.matrix[y].length;x++){
-      if(piece.matrix[y][x] &&
-        (grid[piece.y+y] && grid[piece.y+y][piece.x+x]) !== 0){
-        return true;
+// ============ FIXED COLLISION ============
+function collide(grid, piece) {
+  for (let y = 0; y < piece.matrix.length; y++) {
+    for (let x = 0; x < piece.matrix[y].length; x++) {
+      if (piece.matrix[y][x] !== 0) {
+
+        if (piece.x + x < 0 || piece.x + x >= COLS) return true;
+        if (piece.y + y >= ROWS) return true;
+
+        if (grid[piece.y + y][piece.x + x] !== 0) return true;
       }
     }
   }
   return false;
 }
 
+// ============ MERGE GRID ============
 function merge(grid,piece){
   piece.matrix.forEach((row,y)=>{
     row.forEach((val,x)=>{
@@ -132,16 +171,25 @@ function merge(grid,piece){
   });
 }
 
+// ============ CLEAR LINES ============
 function clearLines(){
+  let lines = 0;
   for(let y=ROWS-1; y>=0; y--){
     if(grid[y].every(v=>v!==0)){
       grid.splice(y,1);
       grid.unshift(Array(COLS).fill(0));
       sndClear.play();
+      lines++;
     }
+  }
+
+  if(lines > 0){
+    score += lines * 100;
+    updateScore();
   }
 }
 
+// ============ DRAW ============
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -150,25 +198,38 @@ function draw(){
     for(let x=0;x<COLS;x++){
       if(grid[y][x]){
         ctx.fillStyle = grid[y][x];
-        ctx.globalAlpha = 0.9;
+        ctx.globalAlpha = 1;
         ctx.fillRect(x*BLOCK,y*BLOCK,BLOCK,BLOCK);
       }
     }
   }
 
-  // CURRENT PIECE
-  if(currentPiece){
-    currentPiece.matrix.forEach((row,y)=>{
+  // GHOST PIECE
+  if(ghostPiece){
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = currentPiece.color;
+    ghostPiece.matrix.forEach((row,y)=>{
       row.forEach((val,x)=>{
         if(val){
-          ctx.fillStyle = currentPiece.color;
-          ctx.fillRect((currentPiece.x+x)*BLOCK,(currentPiece.y+y)*BLOCK,BLOCK,BLOCK);
+          ctx.fillRect((ghostPiece.x+x)*BLOCK,(ghostPiece.y+y)*BLOCK,BLOCK,BLOCK);
         }
       });
     });
   }
+
+  // CURRENT PIECE
+  ctx.globalAlpha = 1;
+  currentPiece.matrix.forEach((row,y)=>{
+    row.forEach((val,x)=>{
+      if(val){
+        ctx.fillStyle = currentPiece.color;
+        ctx.fillRect((currentPiece.x+x)*BLOCK,(currentPiece.y+y)*BLOCK,BLOCK,BLOCK);
+      }
+    });
+  });
 }
 
+// ============ DROP ============
 function drop(){
   currentPiece.y++;
   if(collide(grid,currentPiece)){
@@ -177,14 +238,49 @@ function drop(){
     merge(grid,currentPiece);
     clearLines();
     currentPiece = newPiece();
+    createGhost();
+
     if(collide(grid,currentPiece)){
       sndOver.play();
       alert("Game Over Bro!");
       restartGame();
     }
   }
+  createGhost();
 }
 
+// ============ HARD DROP ============
+function hardDrop(){
+  while(!collide(grid,currentPiece)){
+    currentPiece.y++;
+  }
+  currentPiece.y--;
+  drop();
+}
+
+// ============ MOVEMENT ============
+function move(dir){
+  currentPiece.x += dir;
+  if(collide(grid,currentPiece)) currentPiece.x -= dir;
+  createGhost();
+
+  if(vibrate) navigator.vibrate(15);
+}
+
+// ============ ROTATE ============
+function rotate(){
+  const m = currentPiece.matrix;
+  const rotated = m[0].map((_,i)=>m.map(r=>r[i])).reverse();
+  const old = currentPiece.matrix;
+  currentPiece.matrix = rotated;
+
+  if(collide(grid,currentPiece)) currentPiece.matrix = old;
+  else sndRotate.play();
+
+  createGhost();
+}
+
+// ============ UPDATE LOOP ============
 function update(time=0){
   if(!paused){
     const delta = time - lastTime;
@@ -201,51 +297,54 @@ function update(time=0){
   requestAnimationFrame(update);
 }
 
-function move(dir){
-  currentPiece.x += dir;
-  if(collide(grid,currentPiece)) currentPiece.x -= dir;
-}
-
-function rotate(){
-  const m = currentPiece.matrix;
-  const rotated = m[0].map((_,i)=>m.map(r=>r[i])).reverse();
-  const old = currentPiece.matrix;
-  currentPiece.matrix = rotated;
-
-  if(collide(grid,currentPiece)){
-    currentPiece.matrix = old;  
-  } else {
-    sndRotate.play();
-  }
-}
-
-document.addEventListener("keydown", e =>{
-  if(paused) return;
-
-  if(e.key === "ArrowLeft") move(-1);
-  if(e.key === "ArrowRight") move(1);
-  if(e.key === "ArrowDown") drop();
-  if(e.key === "ArrowUp") rotate();
-});
-
 function restartGame(){
+  score = 0;
+  updateScore();
   resetGrid();
   currentPiece = newPiece();
+  createGhost();
 }
 
 function togglePause(){ paused = !paused; }
 
-function goHome(){ window.location.href = "index.html"; }
+function goHome(){ window.location.href  = "index.html"; }
 
 function toggleFullscreen(){
   if(!document.fullscreenElement) canvas.requestFullscreen();
   else document.exitFullscreen();
 }
 
+function updateScore(){
+  document.getElementById("score").textContent = score;
+
+  if(score > highscore){
+    localStorage.setItem("stackHighscore", score);
+    document.getElementById("highscore").textContent = score;
+  }
+}
+
+// HIGH SCORE INIT
+let highscore = localStorage.getItem("stackHighscore") || 0;
+document.getElementById("highscore").textContent = highscore;
+
 // START GAME
 resetGrid();
 currentPiece = newPiece();
+createGhost();
 update();
+
+// Keyboard
+document.addEventListener("keydown", e =>{
+  if(paused) return;
+  if(e.key === "ArrowLeft") move(-1);
+  if(e.key === "ArrowRight") move(1);
+  if(e.key === "ArrowDown") drop();
+  if(e.key === "ArrowUp") rotate();
+  if(e.key === " ") hardDrop();
+});
+
+// Mobile haptic
+const vibrate = "vibrate" in navigator;
 </script>
 
 </body>
