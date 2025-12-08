@@ -2,7 +2,7 @@
 // GLOBAL VISITOR COUNTER (Cloudflare KV)
 // ======================================================
 
-const COUNTER_URL = "https://green-dust-cb98.azamuslim.workers.dev/";
+const COUNTER_URL = "https://counter-worker.azamuslim.workers.dev/";
 
 async function loadVisitorsGlobal() {
     const el = document.getElementById("visitCount");
