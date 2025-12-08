@@ -235,7 +235,7 @@ async function loadHomepageNews() {
   const newsContainer = document.getElementById("newsContainer");
   
   try {
-    const res = await fetch("https://green-dust-cb98.azamuslim.workers.dev/api/news");
+    const res = await fetch("https://news-worker.azamuslim.workers.dev/api/news");
     if (!res.ok) throw new Error("Gagal fetch news");
 
     const newsData = await res.json();
