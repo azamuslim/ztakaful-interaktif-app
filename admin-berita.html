@@ -157,32 +157,38 @@ async function saveNews() {
 // LOAD NEWS LIST
 // ==============================
 async function loadNews() {
-  const res = await fetch(API_BASE);
-  newsData = await res.json();
+  const box = document.getElementById("newsList");
 
-  const list = document.getElementById("newsList");
-  list.innerHTML = "";
+  try {
+    const res = await fetch("https://news-worker.azamuslim.workers.dev/api/news?sort=desc");
+    const data = await res.json();
 
-  if (newsData.length === 0) {
-    list.innerHTML = "<p>Belum ada berita lagi…</p>";
-    return;
+    box.innerHTML = "";
+
+    data.forEach(n => {
+      const li = document.createElement("div");
+      li.className = "news-item";
+
+      li.innerHTML = `
+        <h3>${n.title}</h3>
+        <div class="news-date">${n.date}</div>
+        <p>${n.content}</p>
+        <button onclick="editNews('${n.id}')">Edit</button>
+        <button onclick="deleteNews('${n.id}')">Delete</button>
+      `;
+
+      box.appendChild(li);
+    });
+
+  } catch (e) {
+    box.innerHTML = "<p>Gagal load news</p>";
   }
-
-  newsData.forEach((item) => {
-    list.innerHTML += `
-      <div class="news-item">
-        <h3>${item.title}</h3>
-        <div class="date">${item.date}</div>
-        <p>${item.content}</p>
-
-        <button class="btn-edit" onclick="editNews('${item.id}')">Edit</button>
-        <button class="btn-danger" onclick="deleteNews('${item.id}')">Delete</button>
-      </div>
-    `;
-  });
 }
 
-// ==============================
+    
+
+        
+ / ==============================
 // EDIT
 // ==============================
 function editNews(id) {
