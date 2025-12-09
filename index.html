@@ -233,46 +233,41 @@
   <script>
 async function loadHomepageNews() {
   const newsContainer = document.getElementById("newsContainer");
-  
+
   try {
     const res = await fetch("https://news-worker.azamuslim.workers.dev/api/news?limit=5");
- 
     if (!res.ok) throw new Error("Gagal fetch news");
 
     const newsData = await res.json();
 
-    if (newsData.length === 0) {
-      newsContainer.innerHTML = "<p>Belum ada berita terkini.</p>";
+    if (!Array.isArray(newsData) || newsData.length === 0) {
+      newsContainer.innerHTML = "<p>Tiada berita terkini.</p>";
       return;
     }
 
     newsContainer.innerHTML = "";
 
-    // Papar maksimum 5 berita terbaru
-    const latestNews = newsData.slice(0, 5);
+    newsData.forEach(item => {
+      const box = document.createElement("div");
+      box.className = "news-card";
 
-    latestNews.forEach(item => {
-      const newsDiv = document.createElement("div");
-      newsDiv.classList.add("news-card");
-
-      newsDiv.innerHTML = `
+      box.innerHTML = `
         <h3>${item.title}</h3>
-        <div class="news-date">${item.date}</div>
+        <div class="news-date">📅 ${item.date}</div>
         <p>${item.content}</p>
       `;
 
-      newsContainer.appendChild(newsDiv);
+      newsContainer.appendChild(box);
     });
 
-    // Optional: simpan ke localStorage
-    localStorage.setItem("ztakafulNews", JSON.stringify(newsData));
-
   } catch (err) {
-    newsContainer.innerHTML = `<p>Error: ${err.message}</p>`;
+    newsContainer.innerHTML = `<p style="color:red">Error: ${err.message}</p>`;
   }
 }
 
 loadHomepageNews();
+
+    
 </script>
 
   
