@@ -113,9 +113,7 @@
 
 <script>
 
-// --- API URL Worker Bro ---
 const API_BASE = "https://news-worker.azamuslim.workers.dev/api/news";
-
 let newsData = [];
 
 // ==============================
@@ -160,8 +158,11 @@ async function loadNews() {
   const box = document.getElementById("newsList");
 
   try {
-    const res = await fetch("https://news-worker.azamuslim.workers.dev/api/news?sort=desc");
+    const res = await fetch(`${API_BASE}?sort=desc`);
     const data = await res.json();
+
+    // IMPORTANT FIX: assign to newsData
+    newsData = data;
 
     box.innerHTML = "";
 
@@ -171,10 +172,10 @@ async function loadNews() {
 
       li.innerHTML = `
         <h3>${n.title}</h3>
-        <div class="news-date">${n.date}</div>
+        <div class="date">${n.date}</div>
         <p>${n.content}</p>
-        <button onclick="editNews('${n.id}')">Edit</button>
-        <button onclick="deleteNews('${n.id}')">Delete</button>
+        <button class="btn-edit" onclick="editNews('${n.id}')">Edit</button>
+        <button class="btn-danger" onclick="deleteNews('${n.id}')">Delete</button>
       `;
 
       box.appendChild(li);
@@ -185,8 +186,7 @@ async function loadNews() {
   }
 }
 
-  
- // ==============================
+// ==============================
 // EDIT
 // ==============================
 function editNews(id) {
@@ -213,10 +213,10 @@ async function deleteNews(id) {
   loadNews();
 }
 
-// Load bila page buka
 loadNews();
 
 </script>
+
 
 </body>
 </html>
