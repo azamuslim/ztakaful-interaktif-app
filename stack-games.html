@@ -150,7 +150,8 @@ function collide(grid, piece) {
     for (let x = 0; x < piece.matrix[y].length; x++) {
       if (piece.matrix[y][x] !== 0) {
 
-        if (piece.x + x < 0 || piece.x + x >= COLS) return true;
+        if (piece.x + x < 0 || piece.x + x > COLS - 1) return true;
+
         if (piece.y + y >= ROWS) return true;
 
         if (grid[piece.y + y][piece.x + x] !== 0) return true;
