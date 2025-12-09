@@ -263,6 +263,8 @@ function hardDrop(){
 function move(dir){
   currentPiece.x += dir;
   if(collide(grid,currentPiece)) currentPiece.x -= dir;
+  // simple wall kick (optional)
+    if (!collide(grid, currentPiece)) return;
   createGhost();
 
   if(vibrate) navigator.vibrate(15);
