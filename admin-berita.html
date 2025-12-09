@@ -112,7 +112,6 @@
 </div>
 
 <script>
-
 const API_BASE = "https://news-worker.azamuslim.workers.dev/api/news";
 let newsData = [];
 
@@ -120,8 +119,8 @@ let newsData = [];
 // SAVE (ADD / EDIT)
 // ==============================
 async function saveNews() {
-  const title = document.getElementById("title").value;
-  const content = document.getElementById("content").value;
+  const title = document.getElementById("title").value.trim();
+  const content = document.getElementById("content").value.trim();
   const editId = document.getElementById("editId").value;
 
   if (!title || !content) {
@@ -130,25 +129,35 @@ async function saveNews() {
   }
 
   const payload = { title, content };
-  let method = "POST";
-  let endpoint = API_BASE;
+  let method = editId ? "PUT" : "POST";
+  let endpoint = editId ? `${API_BASE}/${editId}` : API_BASE;
 
-  if (editId) {
-    method = "PUT";
-    endpoint = `${API_BASE}/${editId}`;
+  try {
+    const res = await fetch(endpoint, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json();
+    console.log("SAVE RESPONSE:", json);
+
+    if (!res.ok) {
+      alert("Gagal simpan berita! Check worker atau CORS.");
+      return;
+    }
+
+    // Reset form
+    document.getElementById("title").value = "";
+    document.getElementById("content").value = "";
+    document.getElementById("editId").value = "";
+
+    loadNews();
+
+  } catch (err) {
+    console.error("SAVE ERROR:", err);
+    alert("Ralat sambungan API. Semak console.");
   }
-
-  await fetch(endpoint, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  document.getElementById("title").value = "";
-  document.getElementById("content").value = "";
-  document.getElementById("editId").value = "";
-
-  loadNews();
 }
 
 // ==============================
@@ -156,23 +165,31 @@ async function saveNews() {
 // ==============================
 async function loadNews() {
   const box = document.getElementById("newsList");
+  box.innerHTML = "<p>Loading...</p>";
 
   try {
     const res = await fetch(`${API_BASE}?sort=desc`);
     const data = await res.json();
 
-    // IMPORTANT FIX: assign to newsData
-    newsData = data;
+    console.log("LOAD NEWS RESPONSE:", data);
+
+    // worker biasanya return array terus
+    newsData = Array.isArray(data) ? data : (data.data || []);
 
     box.innerHTML = "";
 
-    data.forEach(n => {
+    if (newsData.length === 0) {
+      box.innerHTML = "<p>Tiada berita ditemui.</p>";
+      return;
+    }
+
+    newsData.forEach(n => {
       const li = document.createElement("div");
       li.className = "news-item";
 
       li.innerHTML = `
         <h3>${n.title}</h3>
-        <div class="date">${n.date}</div>
+        <div class="date">${n.date || ""}</div>
         <p>${n.content}</p>
         <button class="btn-edit" onclick="editNews('${n.id}')">Edit</button>
         <button class="btn-danger" onclick="deleteNews('${n.id}')">Delete</button>
@@ -181,8 +198,9 @@ async function loadNews() {
       box.appendChild(li);
     });
 
-  } catch (e) {
-    box.innerHTML = "<p>Gagal load news</p>";
+  } catch (err) {
+    console.error("LOAD ERROR:", err);
+    box.innerHTML = "<p>Gagal load berita. Semak console.</p>";
   }
 }
 
@@ -191,7 +209,10 @@ async function loadNews() {
 // ==============================
 function editNews(id) {
   const item = newsData.find(n => n.id === id);
-  if (!item) return;
+  if (!item) {
+    alert("Rekod tidak dijumpai!");
+    return;
+  }
 
   document.getElementById("title").value = item.title;
   document.getElementById("content").value = item.content;
@@ -206,16 +227,22 @@ function editNews(id) {
 async function deleteNews(id) {
   if (!confirm("Confirm delete berita ni Bro?")) return;
 
-  await fetch(`${API_BASE}/${id}`, {
-    method: "DELETE"
-  });
+  try {
+    const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
 
-  loadNews();
+    const json = await res.json();
+    console.log("DELETE RESPONSE:", json);
+
+    loadNews();
+  } catch (err) {
+    console.error("DELETE ERROR:", err);
+    alert("Gagal delete berita!");
+  }
 }
 
 loadNews();
-
 </script>
+
 
 
 </body>
