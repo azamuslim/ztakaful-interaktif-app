@@ -1,5 +1,5 @@
 // ===============================
-// RSS / FEED ARUS PERDANA
+// RSS / FEED ARUS PERDANA (Robust Version)
 // ===============================
 async function loadRSSFeeds() {
   const container = document.getElementById("rssFeedContainer");
@@ -18,18 +18,31 @@ async function loadRSSFeeds() {
   for (const src of sources) {
     try {
       const res = await fetch(src.url);
-      const data = await res.json();
-
-      // ============ SAFETY CHECK ============
-      if (!Array.isArray(data)) {
-        console.warn(`Feed error from ${src.name}:`, data.error);
-        continue;  // Skip feed yang error
+      if (!res.ok) {
+        console.warn(`RSS Fetch HTTP Error (${src.name}):`, res.status);
+        continue;
       }
 
-      const formatted = data.map(item => ({
+      const data = await res.json();
+      console.log(`${src.name} raw data:`, data);
+
+      // Kalau data bukan array, cuba cek property 'items' atau 'news'
+      let newsArray = [];
+      if (Array.isArray(data)) {
+        newsArray = data;
+      } else if (Array.isArray(data.items)) {
+        newsArray = data.items;
+      } else if (Array.isArray(data.news)) {
+        newsArray = data.news;
+      } else {
+        console.warn(`Feed error from ${src.name}: data bukan array`);
+        continue;
+      }
+
+      const formatted = newsArray.map(item => ({
         source: src.name,
-        title: item.title || "",
-        content: (item.content || "").slice(0, 150) + "...",
+        title: item.title || "Tiada tajuk",
+        content: (item.content || item.description || "").slice(0, 150) + "...",
         url: item.url || "#"
       }));
 
@@ -46,19 +59,25 @@ async function loadRSSFeeds() {
     return;
   }
 
-  // Render
+  // Render feed
   container.innerHTML = "";
   allNews.forEach(news => {
-    container.innerHTML += `
-      <div class="rss-card">
-        <h3>${news.title}</h3>
-        <p class="rss-content">${news.content}</p>
-        <a href="${news.url}" target="_blank" class="rss-link">
-          Baca lanjut (${news.source})
-        </a>
-      </div>
+    const card = document.createElement("div");
+    card.className = "rss-card";
+
+    card.innerHTML = `
+      <h3>${news.title}</h3>
+      <p class="rss-content">${news.content}</p>
+      <a href="${news.url}" target="_blank" class="rss-link">
+        Baca lanjut (${news.source})
+      </a>
     `;
+    container.appendChild(card);
   });
 }
+
+// Panggil function selepas DOM ready
+document.addEventListener("DOMContentLoaded", loadRSSFeeds);
+
 
 
