@@ -6,11 +6,11 @@ async function loadRSSFeeds() {
   container.innerHTML = "<p>Loading feed...</p>";
 
   const sources = [
-    { name: "Dagang News", url: "http://localhost:5000/news/dagangnews" },
-    { name: "Bernama", url: "http://localhost:5000/news/bernama" },
-    { name: "The Malaysian Reserve", url: "http://localhost:5000/news/tmr" },
-    { name: "Harian Metro", url: "http://localhost:5000/news/harianmetro" },
-    { name: "Malay Mail", url: "http://localhost:5000/news/malaymail" }
+    { name: "Dagang News", url: "https://ztakaful-interaktif-app.onrender.com/news/dagangnews" },
+    { name: "Bernama", url: "https://ztakaful-interaktif-app.onrender.com/news/bernama" },
+    { name: "The Malaysian Reserve", url: "https://ztakaful-interaktif-app.onrender.com/news/tmr" },
+    { name: "Harian Metro", url: "https://ztakaful-interaktif-app.onrender.com/news/harianmetro" },
+    { name: "Malay Mail", url: "https://ztakaful-interaktif-app.onrender.com/news/malaymail" }
   ];
 
   let allNews = [];
