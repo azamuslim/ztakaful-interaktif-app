@@ -1,4 +1,6 @@
-<script>
+// ===============================
+// RSS / FEED ARUS PERDANA
+// ===============================
 async function loadRSSFeeds() {
   const container = document.getElementById("rssFeedContainer");
   container.innerHTML = "<p>Loading feed...</p>";
@@ -6,7 +8,7 @@ async function loadRSSFeeds() {
   const sources = [
     { name: "Dagang News", url: "http://localhost:5000/news/dagangnews" },
     { name: "Bernama", url: "http://localhost:5000/news/bernama" },
-    { name: "TMR", url: "http://localhost:5000/news/tmr" },
+    { name: "The Malaysian Reserve", url: "http://localhost:5000/news/tmr" },
     { name: "Harian Metro", url: "http://localhost:5000/news/harianmetro" },
     { name: "Malay Mail", url: "http://localhost:5000/news/malaymail" }
   ];
@@ -28,24 +30,24 @@ async function loadRSSFeeds() {
       allNews.push(...formatted);
     }
 
-    // Sort by most recent if timestamp available
     container.innerHTML = "";
 
     allNews.forEach(news => {
       container.innerHTML += `
-        <div class="rss-card">
-          <div class="rss-title">${news.title}</div>
-          <div class="rss-content">${news.content}</div>
-          <a class="rss-link" href="${news.url}" target="_blank">Baca lanjut (${news.source})</a>
+        <div class="news-card">
+          <h3>${news.title}</h3>
+          <p class="news-date">${news.source}</p>
+          <p>${news.content}</p>
+          <a href="${news.url}" target="_blank" class="rss-link">Baca lanjut</a>
         </div>
       `;
     });
 
   } catch (err) {
-    console.error("RSS Error:", err);
-    container.innerHTML = "<p>Gagal memuatkan RSS feed.</p>";
+    console.error("RSS Feed Error:", err);
+    container.innerHTML = "<p style='color:red'>Gagal memuatkan RSS feed.</p>";
   }
 }
 
 document.addEventListener("DOMContentLoaded", loadRSSFeeds);
-</script>
+
